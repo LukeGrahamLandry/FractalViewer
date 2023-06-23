@@ -10,9 +10,12 @@ import MetalKit
 
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
+    @ObservedObject var model = Model();
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
+    
     func makeNSView(context: NSViewRepresentableContext<MetalView>) -> MTKView {
         let mtkView = MTKView()
         mtkView.delegate = context.coordinator
@@ -28,22 +31,56 @@ struct MetalView: NSViewRepresentable {
         mtkView.isPaused = false;
         return mtkView
     }
+    
+    init(){
+        let m = self.model;
+        NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
+            m.fractal.frame_index += Float32($0.scrollingDeltaY);
+            if m.fractal.frame_index < 0.0 {
+                m.fractal.frame_index = 0.0;
+            }
+            print(m.fractal.frame_index);
+            return $0
+        };
+        NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
+            // https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode
+            // TODO: theres no way this is what you're supposed to do
+            let delta = 10.0 / m.fractal.input.t;
+            switch ($0.keyCode){
+            case 0:   // a
+                m.fractal.input.c_offset.x -= delta;
+            case 1:   // s
+                m.fractal.input.c_offset.y += delta;
+            case 2:   // d
+                m.fractal.input.c_offset.x += delta;
+            case 13:   // w
+                m.fractal.input.c_offset.y -= delta;
+            default:
+                break;
+            }
+            return $0
+        };
+    }
+    
     func updateNSView(_ nsView: MTKView, context: NSViewRepresentableContext<MetalView>) {
     }
+    
     class Coordinator : NSObject, MTKViewDelegate {
         var parent: MetalView
-        var fractal: MandelbrotRender
         
         init(_ parent: MetalView) {
-            self.fractal = MandelbrotRender()
             self.parent = parent
             super.init()
         }
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
         }
         func draw(in view: MTKView) {
-            view.layer = fractal.mtl_layer;
-            fractal.draw();
+            view.layer = parent.model.fractal.mtl_layer;
+            parent.model.fractal.draw();
         }
     }
+}
+
+class Model: ObservableObject {
+    var fractal = MandelbrotRender();
 }

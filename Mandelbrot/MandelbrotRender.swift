@@ -7,7 +7,8 @@ struct MandelbrotRender {
     var mtl_layer: CAMetalLayer;
     var queue: MTLCommandQueue;
     var pipeline: MTLRenderPipelineState;
-    var frame_index: Float32 = 0.0;
+    var frame_index: Float32 = 1.0;
+    var input: ShaderInputs;
     
     init() {
         device = MTLCreateSystemDefaultDevice()!;
@@ -26,6 +27,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
+        input = ShaderInputs(t: 1.0, c_offset: float32x2_t(x: 0.35, y: 0.1), resolution: 50);
     }
 
     mutating func draw() {
@@ -40,13 +42,14 @@ struct MandelbrotRender {
         let commands = queue.makeCommandBuffer()!;
         let encoder = commands.makeRenderCommandEncoder(descriptor: pass_desc)!;
         encoder.setRenderPipelineState(pipeline);
-        var input = ShaderInputs(t: frame_index * (frame_index * 0.5), c_offset: float32x2_t(x: 0.35, y: 0.1), resolution: 50);
+        input.t = frame_index * (frame_index * 0.5);
+        // size works for screen saver but not for app. idk
         encoder.setFragmentBytes(&input, length: MemoryLayout<ShaderInputs>.stride, index: 0);
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3);
         encoder.endEncoding();
         commands.present(drawable);
         commands.commit();
-        frame_index += 1.0;
+        // frame_index += 1.0;  // TODO: flag
     }
 }
 
