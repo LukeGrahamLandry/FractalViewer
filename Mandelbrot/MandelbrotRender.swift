@@ -2,14 +2,14 @@ import Metal
 import MetalKit
 import ScreenSaver
 
-class MandelbrotView: ScreenSaverView {
+struct MandelbrotRender {
     var device: MTLDevice;
     var mtl_layer: CAMetalLayer;
     var queue: MTLCommandQueue;
     var pipeline: MTLRenderPipelineState;
     var frame_index: Float32 = 0.0;
     
-    override init?(frame: NSRect, isPreview: Bool) {
+    init() {
         device = MTLCreateSystemDefaultDevice()!;
 //        let shaderURL = Bundle.main.url(forResource: "default", withExtension: "metallib")!;
 //        let library = (try? device.makeLibrary(URL: shaderURL))!;
@@ -26,24 +26,9 @@ class MandelbrotView: ScreenSaverView {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        super.init(frame: frame, isPreview: isPreview);
-        layer = mtl_layer;
-        wantsLayer = true;
     }
 
-    @available(*, unavailable)
-    required init?(coder decoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func draw(_ rect: NSRect) {
-        
-    }
-
-    override func animateOneFrame() {
-        super.animateOneFrame();
-        mtl_layer.drawableSize = bounds.size;
-        
+    mutating func draw() {
         let drawable = mtl_layer.nextDrawable()!;
         let pass_desc = MTLRenderPassDescriptor();
         let colour_attatch = pass_desc.colorAttachments[0]!;
@@ -56,7 +41,7 @@ class MandelbrotView: ScreenSaverView {
         let encoder = commands.makeRenderCommandEncoder(descriptor: pass_desc)!;
         encoder.setRenderPipelineState(pipeline);
         var input = ShaderInputs(t: frame_index * (frame_index * 0.5), c_offset: float32x2_t(x: 0.35, y: 0.1), resolution: 50);
-        encoder.setFragmentBytes(&input, length: MemoryLayout<ShaderInputs>.size, index: 0);
+        encoder.setFragmentBytes(&input, length: MemoryLayout<ShaderInputs>.stride, index: 0);
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3);
         encoder.endEncoding();
         commands.present(drawable);
