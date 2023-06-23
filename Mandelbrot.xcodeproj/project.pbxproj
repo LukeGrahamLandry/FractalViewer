@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A3F40F532A454566007D443F /* MandelbrotView.h in Headers */ = {isa = PBXBuildFile; fileRef = A3F40F522A454566007D443F /* MandelbrotView.h */; };
-		A3F40F552A454566007D443F /* MandelbrotView.m in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F542A454566007D443F /* MandelbrotView.m */; };
+		A3F40F5C2A4545B4007D443F /* MandelbrotView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F5B2A4545B4007D443F /* MandelbrotView.swift */; };
+		A3F40F982A45668F007D443F /* MandelbrotShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A3F40F4F2A454566007D443F /* Mandelbrot.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Mandelbrot.saver; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3F40F522A454566007D443F /* MandelbrotView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MandelbrotView.h; sourceTree = "<group>"; };
-		A3F40F542A454566007D443F /* MandelbrotView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MandelbrotView.m; sourceTree = "<group>"; };
+		A3F40F5B2A4545B4007D443F /* MandelbrotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotView.swift; sourceTree = "<group>"; };
+		A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MandelbrotShaders.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -47,8 +47,8 @@
 		A3F40F512A454566007D443F /* Mandelbrot */ = {
 			isa = PBXGroup;
 			children = (
-				A3F40F522A454566007D443F /* MandelbrotView.h */,
-				A3F40F542A454566007D443F /* MandelbrotView.m */,
+				A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */,
+				A3F40F5B2A4545B4007D443F /* MandelbrotView.swift */,
 			);
 			path = Mandelbrot;
 			sourceTree = "<group>";
@@ -60,7 +60,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3F40F532A454566007D443F /* MandelbrotView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -92,10 +91,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1430;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					A3F40F4E2A454566007D443F = {
 						CreatedOnToolsVersion = 14.3;
+						LastSwiftMigration = 1430;
 					};
 				};
 			};
@@ -132,7 +133,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3F40F552A454566007D443F /* MandelbrotView.m in Sources */,
+				A3F40F982A45668F007D443F /* MandelbrotShaders.metal in Sources */,
+				A3F40F5C2A4545B4007D443F /* MandelbrotView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +253,7 @@
 		A3F40F592A454566007D443F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -263,6 +266,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ca.lukegrahamlandry.Mandelbrot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Debug;
@@ -270,6 +275,7 @@
 		A3F40F5A2A454566007D443F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -282,6 +288,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = ca.lukegrahamlandry.Mandelbrot;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
 				WRAPPER_EXTENSION = saver;
 			};
 			name = Release;
