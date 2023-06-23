@@ -2,7 +2,6 @@ import Metal
 import MetalKit
 import ScreenSaver
 
-// TODO: allow resize without squishing
 struct MandelbrotRender {
     var device: MTLDevice;
     var mtl_layer: CAMetalLayer;
@@ -11,6 +10,7 @@ struct MandelbrotRender {
     var frame_index: Float32 = 17.0;
     var input: ShaderInputs;
     
+    // TODO: return an error here and show a message if metal setup fails
     init() {
         device = MTLCreateSystemDefaultDevice()!;
         let library = device.makeDefaultLibrary()!;
@@ -25,7 +25,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        input = ShaderInputs(t: 0.0, c_offset: float32x2_t(x: -2.85, y: -1.32), resolution: 200, colour_count: 200);
+        input = ShaderInputs(zoom: 0.0, c_offset: float32x2_t(x: -2.85, y: -1.32), resolution: 500, colour_count: 100);
     }
 
     mutating func draw() {
@@ -40,7 +40,7 @@ struct MandelbrotRender {
         let commands = queue.makeCommandBuffer()!;
         let encoder = commands.makeRenderCommandEncoder(descriptor: pass_desc)!;
         encoder.setRenderPipelineState(pipeline);
-        input.t = frame_index * (frame_index * 0.5);
+        input.zoom = frame_index * (frame_index * 0.5);
         // size works for screen saver but not for app. idk
         encoder.setFragmentBytes(&input, length: MemoryLayout<ShaderInputs>.stride, index: 0);
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3);
@@ -52,9 +52,9 @@ struct MandelbrotRender {
 }
 
 struct ShaderInputs {
-    var t: Float32;
+    var zoom: Float32;
     // This is added after pixel coordinates are scaled so it's in the complex units for the actual mandelbrot function. 
     var c_offset: float32x2_t;
     var resolution: Int32;
-    var colour_count: Int32;  // Probably going to remove this. wasn't interesting. 
+    var colour_count: Int32;
 }

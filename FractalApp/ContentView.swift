@@ -10,19 +10,19 @@ struct MetalView: NSViewRepresentable {
     }
     
     func makeNSView(context: NSViewRepresentableContext<MetalView>) -> MTKView {
-        let mtkView = MTKView()
-        mtkView.delegate = context.coordinator
-        mtkView.preferredFramesPerSecond = 60
-        mtkView.enableSetNeedsDisplay = true
-        if let metalDevice = MTLCreateSystemDefaultDevice() {
-            mtkView.device = metalDevice
-        }
-        mtkView.framebufferOnly = false
-        mtkView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
-        mtkView.drawableSize = mtkView.frame.size
-        mtkView.enableSetNeedsDisplay = true
+        let mtkView = MTKView();
+        mtkView.delegate = context.coordinator;
+        mtkView.preferredFramesPerSecond = 60;
+        mtkView.enableSetNeedsDisplay = true;
+        mtkView.device = self.model.fractal.device;
+        mtkView.framebufferOnly = false;
+        mtkView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0);
+        mtkView.drawableSize = mtkView.frame.size;
+        mtkView.enableSetNeedsDisplay = true;
         mtkView.isPaused = false;
-        return mtkView
+        mtkView.presentsWithTransaction = true;
+        mtkView.layer = self.model.fractal.mtl_layer;
+        return mtkView;
     }
     
     init(_ m: Model){
@@ -39,7 +39,7 @@ struct MetalView: NSViewRepresentable {
         };
         
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
-            let move_speed = 10.0 / m.fractal.input.t;
+            let move_speed = 10.0 / m.fractal.input.zoom;
             // https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode
             // TODO: theres no way this is what you're supposed to do
             switch ($0.keyCode){
@@ -89,7 +89,8 @@ struct MetalView: NSViewRepresentable {
         }
         
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
-            // I don't care about this but the protocol needs it.
+            self.parent.model.dirty = true;
+            self.parent.model.fractal.mtl_layer.drawableSize = size;
         }
         
         func draw(in view: MTKView) {
@@ -101,7 +102,6 @@ struct MetalView: NSViewRepresentable {
                 return;
             }
             
-            view.layer = parent.model.fractal.mtl_layer;
             let debug = MTLCaptureManager.shared().makeCaptureScope(commandQueue: parent.model.fractal.queue);
             MTLCaptureManager.shared().defaultCaptureScope = debug;
             debug.begin();
