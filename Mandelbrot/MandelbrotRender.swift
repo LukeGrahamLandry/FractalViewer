@@ -2,12 +2,13 @@ import Metal
 import MetalKit
 import ScreenSaver
 
+// TODO: allow resize without squishing
 struct MandelbrotRender {
     var device: MTLDevice;
     var mtl_layer: CAMetalLayer;
     var queue: MTLCommandQueue;
     var pipeline: MTLRenderPipelineState;
-    var frame_index: Float32 = 1.0;
+    var frame_index: Float32 = 17.0;
     var input: ShaderInputs;
     
     init() {
@@ -24,7 +25,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        input = ShaderInputs(t: 1.0, c_offset: float32x2_t(x: -0.15, y: -0.4), resolution: 100, colour_count: 100);
+        input = ShaderInputs(t: 0.0, c_offset: float32x2_t(x: -2.85, y: -1.32), resolution: 200, colour_count: 200);
     }
 
     mutating func draw() {

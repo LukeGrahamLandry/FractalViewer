@@ -3,8 +3,7 @@ import MetalKit
 
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
-    // TODO: should this be @StateObject instead? I think that messes up the closure capture somehow.
-    @ObservedObject var model = Model();
+    var model: Model;
     
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
@@ -26,18 +25,14 @@ struct MetalView: NSViewRepresentable {
         return mtkView
     }
     
-    init(){
-        // Take a reference for the closures to capture.
-        let m = self.model;
+    init(_ m: Model){
+        self.model = m;
         
         // TODO: have zoom be centered on mouse position.
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
             // TODO: move time based zoom to screen saver and directly modify inputs.t instead of setting it every frame.
             m.fractal.frame_index -= Float32($0.scrollingDeltaY) * 0.15;
-            // TODO: this annoys me. they must have a clamp
-            if m.fractal.frame_index < 0.0 {
-                m.fractal.frame_index = 0.0;
-            }
+            m.fractal.frame_index = max(min(m.fractal.frame_index, 25000.0), 5.0);
             m.dirty = true;
             
             return $0
@@ -100,6 +95,7 @@ struct MetalView: NSViewRepresentable {
         func draw(in view: MTKView) {
             if parent.model.delta != float32x2_t(0.0, 0.0) {
                 parent.model.fractal.input.c_offset += parent.model.delta;
+                parent.model.fractal.input.c_offset = clamp(parent.model.fractal.input.c_offset, min: float32x2_t(-5, -5), max: float32x2_t(5, 5));
             } else if !parent.model.dirty {
                 // If not moving and haven't zoomed, don't bother rendering this frame.
                 return;
@@ -117,7 +113,7 @@ struct MetalView: NSViewRepresentable {
 }
 
 class Model: ObservableObject {
-    var fractal = MandelbrotRender();
+    @Published var fractal = MandelbrotRender();
     var delta = float32x2_t(0.0, 0.0);
     var dirty = true;
 }

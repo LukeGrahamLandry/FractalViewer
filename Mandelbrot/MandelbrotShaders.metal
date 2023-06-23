@@ -35,6 +35,10 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
     for (;i<input.resolution && length_squared(z) <= 4;i++){
         z = complex_mul(z, z) + c;
     }
+    // Sad branch noises but nobody cares. 
+    if (i == input.resolution) {
+        return {0.0, 0.0, 0.0, 1.0};
+    }
     float3 hsv = { (float) (i % input.colour_count) / (float) input.colour_count, 1.0, 1.0 };
     return float4(hsv2rgb(hsv), 1.0);
 }
