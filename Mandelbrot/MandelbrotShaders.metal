@@ -9,6 +9,7 @@ typedef struct {
     float t;
     float2 c_offset;
     int32_t resolution;
+    int32_t colour_count;
 } ShaderInputs;
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.
@@ -29,13 +30,11 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
     int i = 0;
     float2 z = float2(0.0, 0.0);
     float2 c = { pixel.position.x, pixel.position.y};
-    c.x -= 500;
-    c.y -= 500;
     c /= input.t;
     c += input.c_offset;
     for (;i<input.resolution && length_squared(z) <= 4;i++){
         z = complex_mul(z, z) + c;
     }
-    float3 hsv = { (float) i / (float) input.resolution, 1.0, 1.0 };
+    float3 hsv = { (float) (i % input.colour_count) / (float) input.colour_count, 1.0, 1.0 };
     return float4(hsv2rgb(hsv), 1.0);
 }

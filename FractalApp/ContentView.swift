@@ -1,15 +1,9 @@
-//
-//  ContentView.swift
-//  FractalApp
-//
-//  Created by Luke Graham Landry on 2023-06-23.
-//
-
 import SwiftUI
 import MetalKit
 
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
+    // TODO: should this be @StateObject instead? I think that messes up the closure capture somehow.
     @ObservedObject var model = Model();
     
     func makeCoordinator() -> Coordinator {
@@ -33,32 +27,58 @@ struct MetalView: NSViewRepresentable {
     }
     
     init(){
+        // Take a reference for the closures to capture.
         let m = self.model;
+        
+        // TODO: have zoom be centered on mouse position.
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
-            m.fractal.frame_index += Float32($0.scrollingDeltaY);
+            // TODO: move time based zoom to screen saver and directly modify inputs.t instead of setting it every frame.
+            m.fractal.frame_index -= Float32($0.scrollingDeltaY) * 0.15;
+            // TODO: this annoys me. they must have a clamp
             if m.fractal.frame_index < 0.0 {
                 m.fractal.frame_index = 0.0;
             }
-            print(m.fractal.frame_index);
+            m.dirty = true;
+            
             return $0
         };
+        
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
+            let move_speed = 10.0 / m.fractal.input.t;
             // https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode
             // TODO: theres no way this is what you're supposed to do
-            let delta = 10.0 / m.fractal.input.t;
             switch ($0.keyCode){
             case 0:   // a
-                m.fractal.input.c_offset.x -= delta;
+                m.delta.x = -move_speed;
             case 1:   // s
-                m.fractal.input.c_offset.y += delta;
+                m.delta.y = move_speed;
             case 2:   // d
-                m.fractal.input.c_offset.x += delta;
+                m.delta.x = move_speed;
             case 13:   // w
-                m.fractal.input.c_offset.y -= delta;
+                m.delta.y = -move_speed;
             default:
-                break;
+                return $0;
             }
-            return $0
+            // Say we handled the event so it doesn't make the angry bing noise.
+            return nil;
+        };
+        
+        NSEvent.addLocalMonitorForEvents(matching: [.keyUp]) {
+            // https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode
+            // TODO: theres no way this is what you're supposed to do
+            switch ($0.keyCode){
+            case 0:   // a
+                m.delta.x = 0.0;
+            case 1:   // s
+                m.delta.y = 0.0;
+            case 2:   // d
+                m.delta.x = 0.0;
+            case 13:   // w
+                m.delta.y = 0.0;
+            default:
+                return $0;
+            }
+            return nil;
         };
     }
     
@@ -72,15 +92,32 @@ struct MetalView: NSViewRepresentable {
             self.parent = parent
             super.init()
         }
+        
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+            // I don't care about this but the protocol needs it.
         }
+        
         func draw(in view: MTKView) {
+            if parent.model.delta != float32x2_t(0.0, 0.0) {
+                parent.model.fractal.input.c_offset += parent.model.delta;
+            } else if !parent.model.dirty {
+                // If not moving and haven't zoomed, don't bother rendering this frame.
+                return;
+            }
+            
             view.layer = parent.model.fractal.mtl_layer;
+            let debug = MTLCaptureManager.shared().makeCaptureScope(commandQueue: parent.model.fractal.queue);
+            MTLCaptureManager.shared().defaultCaptureScope = debug;
+            debug.begin();
             parent.model.fractal.draw();
+            debug.end();
+            parent.model.dirty = false;
         }
     }
 }
 
 class Model: ObservableObject {
     var fractal = MandelbrotRender();
+    var delta = float32x2_t(0.0, 0.0);
+    var dirty = true;
 }

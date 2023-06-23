@@ -12,12 +12,9 @@ struct MandelbrotRender {
     
     init() {
         device = MTLCreateSystemDefaultDevice()!;
-//        let shaderURL = Bundle.main.url(forResource: "default", withExtension: "metallib")!;
-//        let library = (try? device.makeLibrary(URL: shaderURL))!;
-        // let library = (try? device.makeDefaultLibrary(bundle: Bundle.main))!;
-//        let library = device.makeDefaultLibrary()!;
-    
-        let library = (try? device.makeLibrary(source: fuckyouxcode, options: nil))!;
+        let library = device.makeDefaultLibrary()!;
+        // Default library seems to not work with screen saver? I see it in the package but it gives nil. Can paste the MSL as a string.
+        // let library = (try? device.makeLibrary(source: fuckyouxcode, options: nil))!;
         let pipe_desc = MTLRenderPipelineDescriptor();
         pipe_desc.vertexFunction = library.makeFunction(name: "vertex_main")!;
         pipe_desc.fragmentFunction = library.makeFunction(name: "fragment_main")!;
@@ -27,7 +24,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        input = ShaderInputs(t: 1.0, c_offset: float32x2_t(x: 0.35, y: 0.1), resolution: 50);
+        input = ShaderInputs(t: 1.0, c_offset: float32x2_t(x: -0.15, y: -0.4), resolution: 100, colour_count: 100);
     }
 
     mutating func draw() {
@@ -55,52 +52,8 @@ struct MandelbrotRender {
 
 struct ShaderInputs {
     var t: Float32;
+    // This is added after pixel coordinates are scaled so it's in the complex units for the actual mandelbrot function. 
     var c_offset: float32x2_t;
     var resolution: Int32;
+    var colour_count: Int32;  // Probably going to remove this. wasn't interesting. 
 }
-
-
-let fuckyouxcode = """
-                                 #include <metal_stdlib>
-                                 using namespace metal;
-
-                                 typedef struct {
-                                     float4 position [[position]];
-                                 } VertOut;
-
-                                 typedef struct {
-                                     float t;
-                                     float2 c_offset;
-                                     int32_t resolution;
-                                 } ShaderInputs;
-
-                                 // Big triangle that covers the screen so the fragment shader runs for every pixel.
-                                 // https://www.saschawillems.de/blog/2016/08/13/vulkan-tutorial-on-rendering-a-fullscreen-quad-without-buffers/
-                                 vertex VertOut vertex_main(uint vid [[vertex_id]]) {
-                                     return { float4(2 * (float) ((vid << 1) & 2) - 1, 2 * (float) (vid & 2) - 1, 0, 1) };
-                                 }
-
-                                 float3 hsv2rgb(float3 c){
-                                     float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
-                                     float3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
-                                     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
-                                 }
-
-                                 #define complex_mul(a, b) float2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
-                                 
-                                 fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
-                                     int i = 0;
-                                     float2 z = float2(0.0, 0.0);
-                                     float2 c = { pixel.position.x, pixel.position.y};
-                                     c.x -= 500;
-                                     c.y -= 500;
-                                     c /= input.t;
-                                     c += input.c_offset;
-                                     for (;i<input.resolution && length_squared(z) <= 4;i++){
-                                         z = complex_mul(z, z) + c;
-                                     }
-                                     float3 hsv = { (float) i / (float) input.resolution, 1.0, 1.0 };
-                                     return float4(hsv2rgb(hsv), 1.0);
-                                 }
-
-                                 """;
