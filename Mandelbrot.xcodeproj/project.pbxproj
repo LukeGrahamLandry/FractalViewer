@@ -15,6 +15,7 @@
 		A3F40F4F2A454566007D443F /* Mandelbrot.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Mandelbrot.saver; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3F40F5B2A4545B4007D443F /* MandelbrotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotView.swift; sourceTree = "<group>"; };
 		A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MandelbrotShaders.metal; sourceTree = "<group>"; };
+		A3F40F9B2A458545007D443F /* magic.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = magic.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +32,7 @@
 		A3F40F452A454566007D443F = {
 			isa = PBXGroup;
 			children = (
+				A3F40F9B2A458545007D443F /* magic.md */,
 				A3F40F512A454566007D443F /* Mandelbrot */,
 				A3F40F502A454566007D443F /* Products */,
 			);
