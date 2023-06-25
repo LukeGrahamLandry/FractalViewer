@@ -8,7 +8,7 @@ typedef struct {
 typedef struct {
     float zoom;
     float2 c_offset;
-    int32_t resolution;
+    int32_t steps;
     int32_t colour_count;
     float2 z_initial;
 } ShaderInputs;
@@ -25,19 +25,21 @@ float3 hsv2rgb(float3 c){
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-#define complex_mul(a, b) float2(a.x*b.x-a.y*b.y, a.x*b.y+a.y*b.x)
-
 fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int i = 0;
-    float2 z = input.z_initial;
     float2 c = { pixel.position.x, pixel.position.y};
     c /= input.zoom;
     c += input.c_offset;
-    for (;i<input.resolution && length_squared(z) <= 4;i++){
-        z = complex_mul(z, z) + c;
+    float2 z = input.z_initial;
+    float2 zSq = z * z;
+    for (;i<input.steps && (zSq.x + zSq.y) <= 4;i++){
+        z.y = (z.x + z.x) * z.y;
+        z.x = zSq.x - zSq.y;
+        z += c;
+        zSq = z * z;
     }
     // Sad branch noises but nobody cares. 
-    if (i == input.resolution) {
+    if (i == input.steps) {
         return {0.0, 0.0, 0.0, 1.0};
     }
     float3 hsv = { (float) (i % input.colour_count) / (float) input.colour_count, 1.0, 1.0 };

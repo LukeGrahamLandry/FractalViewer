@@ -24,7 +24,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        input = ShaderInputs(zoom: 100.0, c_offset: float32x2_t(x: -2.85, y: -1.32), resolution: 500, colour_count: 100, z_initial: float32x2_t(x: 0.0, y: 0.0));
+        input = ShaderInputs(zoom: 100.0, c_offset: float32x2_t(x: -2.85, y: -1.32), steps: 500, colour_count: 100, z_initial: float32x2_t(x: 0.0, y: 0.0));
     }
 
     mutating func draw() {
@@ -52,7 +52,7 @@ struct ShaderInputs {
     var zoom: Float32;
     // This is added after pixel coordinates are scaled so it's in the complex units for the actual mandelbrot function. 
     var c_offset: float32x2_t;
-    var resolution: Int32;
+    var steps: Int32;
     var colour_count: Int32;
     var z_initial: float32x2_t;
 }

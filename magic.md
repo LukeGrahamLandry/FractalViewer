@@ -7,6 +7,7 @@
 - https://mathigon.org/course/fractals/mandelbrot
 // everything outside 2 radius circle around origin is guarenteeed to diverge 
 to fix the colour stair step: http://linas.org/art-gallery/escape/escape.html
+simple algebra to simplify the loop https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set
 approximation for higher zoom when floats run out of precision: https://math.stackexchange.com/questions/939270/perturbation-of-mandelbrot-set-fractal
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.

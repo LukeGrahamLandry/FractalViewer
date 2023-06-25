@@ -56,7 +56,7 @@ struct ConfigView: View {
     
     init(_ model: Model) {
         self.model = model;
-        self.steps_text = "\(model.fractal.input.resolution)";
+        self.steps_text = "\(model.fractal.input.steps)";
         self.wrap_text = "\(model.fractal.input.colour_count)";
     }
     
@@ -73,10 +73,10 @@ struct ConfigView: View {
                     if let steps = Int32(self.steps_text) {
                         // This is capped at the point where changes stop being visable anyway.
                         // Should go up when I figure out how to zoom farther
-                        self.model.fractal.input.resolution = min(max(steps, 2), 10000);
+                        self.model.fractal.input.steps = min(max(steps, 2), 10000);
                         self.model.dirty = true;
                     }
-                    self.steps_text = "\(self.model.fractal.input.resolution)";
+                    self.steps_text = "\(self.model.fractal.input.steps)";
                 }.frame(width: 50.0)
             } label: {
               Text("Steps")
