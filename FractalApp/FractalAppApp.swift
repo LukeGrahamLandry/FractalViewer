@@ -1,10 +1,3 @@
-//
-//  FractalAppApp.swift
-//  FractalApp
-//
-//  Created by Luke Graham Landry on 2023-06-23.
-//
-
 import SwiftUI
 
 @main
@@ -93,6 +86,7 @@ struct ConfigView: View {
               Text("Wrap")
             }
             
+            // TODO: show this position as a little plane
             let zr_binding = Binding(
                 get: { "\(self.model.fractal.input.z_initial.x)" },
                 set: {
@@ -126,6 +120,7 @@ struct ConfigView: View {
     }
 }
 
+// TODO: Lazy. I hate this. its just for a closure
 class M: ObservableObject {
     @Published var show_ui = false;
 }

@@ -20,7 +20,7 @@ struct MetalView: NSViewRepresentable {
         mtkView.drawableSize = mtkView.frame.size;
         mtkView.enableSetNeedsDisplay = true;
         mtkView.isPaused = false;
-        mtkView.presentsWithTransaction = true;
+        mtkView.presentsWithTransaction = false;
         mtkView.layer = self.model.fractal.mtl_layer;
         return mtkView;
     }
@@ -35,7 +35,7 @@ struct MetalView: NSViewRepresentable {
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
             let zoom_delta = Float32($0.scrollingDeltaY) * 0.0003 * m.fractal.input.zoom;
             let old_zoom = m.fractal.input.zoom;
-            let new_zoom = max(min(old_zoom + zoom_delta, 300000000.0), 1.0);
+            let new_zoom = max(old_zoom + zoom_delta, 1.0);
             
             // We want the zoom to be centered on the mouse.
             // So calculate the mouse position and then see how much it would move with the new zoom
@@ -61,6 +61,7 @@ struct MetalView: NSViewRepresentable {
             return nil;
         }
         
+        // TODO: for z move dont just use scale cause that gets too slow.  
         // Keys to move
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
             let move_speed = 10.0 / m.fractal.input.zoom;
@@ -121,7 +122,7 @@ struct MetalView: NSViewRepresentable {
         func draw(in view: MTKView) {
             if parent.model.delta != float32x2_t(0.0, 0.0) {
                 parent.model.fractal.input.z_initial += parent.model.delta;
-                parent.model.fractal.input.z_initial = clamp(parent.model.fractal.input.z_initial, min: float32x2_t(-5, -5), max: float32x2_t(5, 5));
+                parent.model.fractal.input.z_initial = clamp(parent.model.fractal.input.z_initial, min: float32x2_t(-2, -2), max: float32x2_t(2, 2));
             } else if !parent.model.dirty {
                 // If not moving and haven't zoomed, don't bother rendering this frame.
                 return;

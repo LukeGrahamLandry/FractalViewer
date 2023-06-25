@@ -1,6 +1,8 @@
 #include <metal_stdlib>
 using namespace metal;
 
+#include "float_float.h"
+
 typedef struct {
     float4 position [[position]];
 } VertOut;
@@ -27,15 +29,15 @@ float3 hsv2rgb(float3 c){
 
 fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int i = 0;
-    float2 c = { pixel.position.x, pixel.position.y};
-    c /= input.zoom;
-    c += input.c_offset;
-    float2 z = input.z_initial;
-    float2 zSq = z * z;
-    for (;i<input.steps && (zSq.x + zSq.y) <= 4;i++){
+    df64_2 c = pixel.position.xy;
+    c = c / df64_2(input.zoom);
+    c = c + df64_2(input.c_offset);
+    df64_2 z = input.z_initial;
+    df64_2 zSq = z * z;
+    for (;i<input.steps && (zSq.x + zSq.y).toFloat() < 4;i++){
         z.y = (z.x + z.x) * z.y;
         z.x = zSq.x - zSq.y;
-        z += c;
+        z = z + c;
         zSq = z * z;
     }
     // Sad branch noises but nobody cares. 
@@ -46,6 +48,6 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
     return float4(hsv2rgb(hsv), 1.0);
 }
 
-// TODO: move around plane to chance starting z.
 // TODO: show corisponding julia set
 // TODO: move around c for julia set
+// TODO: beware fast-math when i start cheating precision

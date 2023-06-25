@@ -19,10 +19,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A398A7922A483F400043F4ED /* swiftui.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = swiftui.md; sourceTree = "<group>"; };
+		A398A7932A48652E0043F4ED /* float_float.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = float_float.h; sourceTree = "<group>"; };
 		A3F40F4F2A454566007D443F /* Mandelbrot.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Mandelbrot.saver; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotScreensaver.swift; sourceTree = "<group>"; };
 		A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MandelbrotShaders.metal; sourceTree = "<group>"; };
-		A3F40F9B2A458545007D443F /* magic.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = magic.md; sourceTree = "<group>"; };
+		A3F40F9B2A458545007D443F /* fractals.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = fractals.md; sourceTree = "<group>"; };
 		A3F40FA22A45B4D9007D443F /* FractalApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FractalApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3F40FA42A45B4D9007D443F /* FractalAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FractalAppApp.swift; sourceTree = "<group>"; };
 		A3F40FA62A45B4D9007D443F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -53,7 +55,8 @@
 		A3F40F452A454566007D443F = {
 			isa = PBXGroup;
 			children = (
-				A3F40F9B2A458545007D443F /* magic.md */,
+				A398A7922A483F400043F4ED /* swiftui.md */,
+				A3F40F9B2A458545007D443F /* fractals.md */,
 				A3F40F512A454566007D443F /* Mandelbrot */,
 				A3F40FA32A45B4D9007D443F /* FractalApp */,
 				A3F40F502A454566007D443F /* Products */,
@@ -75,6 +78,7 @@
 				A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */,
 				A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */,
 				A3F40FB12A45B607007D443F /* MandelbrotRender.swift */,
+				A398A7932A48652E0043F4ED /* float_float.h */,
 			);
 			path = Mandelbrot;
 			sourceTree = "<group>";
@@ -281,7 +285,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
+				MTL_FAST_MATH = NO;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -333,7 +337,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
+				MTL_FAST_MATH = NO;
 				SDKROOT = macosx;
 			};
 			name = Release;
