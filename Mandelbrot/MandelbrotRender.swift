@@ -7,7 +7,6 @@ struct MandelbrotRender {
     var mtl_layer: CAMetalLayer;
     var queue: MTLCommandQueue;
     var pipeline: MTLRenderPipelineState;
-    var frame_index: Float32 = 17.0;
     var input: ShaderInputs;
     
     // TODO: return an error here and show a message if metal setup fails
@@ -25,7 +24,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        input = ShaderInputs(zoom: 0.0, c_offset: float32x2_t(x: -2.85, y: -1.32), resolution: 500, colour_count: 100);
+        input = ShaderInputs(zoom: 100.0, c_offset: float32x2_t(x: -2.85, y: -1.32), resolution: 500, colour_count: 100);
     }
 
     mutating func draw() {
@@ -40,14 +39,12 @@ struct MandelbrotRender {
         let commands = queue.makeCommandBuffer()!;
         let encoder = commands.makeRenderCommandEncoder(descriptor: pass_desc)!;
         encoder.setRenderPipelineState(pipeline);
-        input.zoom = frame_index * (frame_index * 0.5);
         // size works for screen saver but not for app. idk
         encoder.setFragmentBytes(&input, length: MemoryLayout<ShaderInputs>.stride, index: 0);
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3);
         encoder.endEncoding();
         commands.present(drawable);
         commands.commit();
-        // frame_index += 1.0;  // TODO: flag
     }
 }
 

@@ -28,15 +28,30 @@ struct MetalView: NSViewRepresentable {
     init(_ m: Model){
         self.model = m;
         
-        // TODO: have zoom be centered on mouse position.
+        // TODO: have zoom be centered on mouse position even when settings open.
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
-            // TODO: move time based zoom to screen saver and directly modify inputs.t instead of setting it every frame.
-            m.fractal.frame_index -= Float32($0.scrollingDeltaY) * 0.15;
-            m.fractal.frame_index = max(min(m.fractal.frame_index, 25000.0), 5.0);
+            let zoom_delta = Float32($0.scrollingDeltaY) * 0.001 * m.fractal.input.zoom;
+            let old_zoom = m.fractal.input.zoom;
+            let new_zoom = max(min(old_zoom + zoom_delta, 300000000.0), 1.0);
+            
+            // We want the zoom to be centered on the mouse.
+            // So calculate the mouse position and then see how much it would move with the new zoom
+            // and translate the camera by that much to compensate.
+            let screen_mouse_pos = float32x2_t(Float($0.locationInWindow.x), Float(m.fractal.mtl_layer.drawableSize.height - $0.locationInWindow.y));
+            let c_mouse_offset = screen_mouse_pos / old_zoom;
+            let c_new_mouse_offset = screen_mouse_pos / new_zoom;
+            m.fractal.input.c_offset += c_mouse_offset - c_new_mouse_offset;
+            
             m.dirty = true;
+            m.fractal.input.zoom = new_zoom;
             
             return $0
         };
+        
+        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
+            
+            return $0
+        }
         
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
             let move_speed = 10.0 / m.fractal.input.zoom;

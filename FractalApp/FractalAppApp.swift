@@ -9,6 +9,8 @@ import SwiftUI
 
 @main
 struct FractalAppApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+        
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -23,10 +25,7 @@ struct ContentView: View {
     
     var body: some View {
         if self.show.show_ui {
-            HStack {
-                ConfigView(model)
-                MetalView(model)
-            }
+            MetalView(model).overlay(ConfigView(model), alignment: .topLeading)
         } else {
             MetalView(model)
         }
@@ -64,7 +63,6 @@ struct ConfigView: View {
             Text("X: \(model.fractal.input.c_offset.x)")
             Text("Y: \(model.fractal.input.c_offset.y)")
             Text("\(Int(model.fractal.input.zoom))x")
-            Text("i: \(Int(model.fractal.frame_index))")
             
             // TODO: wrap these in thier own view? Field can take ParseableFormatStyle to parse numbers?
             // TODO: show explanation of what the numbers do.
@@ -93,10 +91,17 @@ struct ConfigView: View {
             } label: {
               Text("Wrap")
             }
-        }.foregroundColor(.black)
+        }.foregroundColor(.black).background(Color.white.opacity(0.75))
     }
 }
 
 class M: ObservableObject {
     @Published var show_ui = false;
+}
+
+// https://stackoverflow.com/questions/65743619/close-swiftui-application-when-last-window-is-closed
+class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        return true
+    }
 }
