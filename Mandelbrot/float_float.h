@@ -4,52 +4,29 @@
 
 // All stolen from https://andrewthall.org/papers/df64_qf128.pdf
 
-//float4 twoSumComp( float2 ari , float2 bri ) {
-//    float2 s=ari+bri;
-//    float2 v=s-ari;
-//    float2 e=(ari-(s-v))+(bri-v);
-//    return float4(s.x, e.x, s.y, e.y);
-//}
-//
-//float2 quickTwoSum( float a , float b ){
-//    float s=a+b;
-//    float e=b-(s-a);
-//    return float2(s, e);
-//}
-//
-//float2 df64_add(float2 a, float2 b) {
-//    float4 st;
-//    st = twoSumComp(a, b);
-//    st.y += st.z;
-//    st.xy = quickTwoSum(st.x, st.y);
-//    st.y += st.w;
-//    st.xy = quickTwoSum(st.x, st.y);
-//    return st.xy;
-//}
+float4 twoSumComp( float2 ari , float2 bri ) {
+    float2 s=ari+bri;
+    float2 v=s-ari;
+    float2 e=(ari-(s-v))+(bri-v);
+    return float4(s.x, e.x, s.y, e.y);
+}
 
-float2 quickTwoSum( float a , float b ) {
+float2 quickTwoSum( float a , float b ){
     float s=a+b;
     float e=b-(s-a);
-    return float2(s, e);
-
-}
-float2 twoSum( float a , float b) {
-    float s=a+b;
-    float v=s-a;
-    float e=(a-(s-v))+(b-v);
     return float2(s, e);
 }
 
 float2 df64_add(float2 a, float2 b) {
-    float2 s, t;
-    s = twoSum(a.x, b.x);
-    t = twoSum(a.y, b.y);
-    s.y += t.x;
-    s = quickTwoSum(s.x, s.y);
-    s.y += t.y;
-    s = quickTwoSum(s.x, s.y);
-    return s;
+    float4 st;
+    st = twoSumComp(a, b);
+    st.y += st.z;
+    st.xy = quickTwoSum(st.x, st.y);
+    st.y += st.w;
+    st.xy = quickTwoSum(st.x, st.y);
+    return st.xy;
 }
+
     
 #define df64_diff(a, b) df64_add(a, -b)
 
@@ -147,6 +124,11 @@ typedef struct df64_2 {
     df64_2(float v){
         x = df64(v);
         y = df64(v);
+    }
+   
+    df64_2(df64 v){
+        x = v;
+        y = v;
     }
    
     df64_2(float2 v){

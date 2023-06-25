@@ -53,6 +53,7 @@ struct ConfigView: View {
         self.wrap_text = "\(model.fractal.input.colour_count)";
     }
     
+    // TODO: toggle between c_offset and z_initial
     var body: some View {
         VStack {
             Text("X: \(model.fractal.input.c_offset.x)")
@@ -90,7 +91,7 @@ struct ConfigView: View {
             let zr_binding = Binding(
                 get: { "\(self.model.fractal.input.z_initial.x)" },
                 set: {
-                    if let z = Float($0) {
+                    if let z = Float64($0) {
                         self.model.fractal.input.z_initial.x = min(max(z, -2.0), 2.0);
                         self.model.dirty = true;
                     }
@@ -105,7 +106,7 @@ struct ConfigView: View {
             let zi_binding = Binding(
                 get: { "\(self.model.fractal.input.z_initial.y)" },
                 set: {
-                    if let z = Float($0) {
+                    if let z = Float64($0) {
                         self.model.fractal.input.z_initial.y = min(max(z, -2.0), 2.0);
                         self.model.dirty = true;
                     }
@@ -115,6 +116,20 @@ struct ConfigView: View {
                 TextField("Z_i", text: zi_binding).frame(width: 100.0)
             } label: {
               Text("Z_i")
+            }
+            
+            let max_res = 5.0;
+            let resolution_binding = Binding(
+                get: { max_res - self.model.resolutionScale + 1},
+                set: {
+                    self.model.resolutionScale = max_res - $0 + 1;
+                    self.model.dirty = true;
+                }
+            );
+            LabeledContent {
+                Slider(value: resolution_binding, in: 1...max_res).frame(width: 100.0)
+            } label: {
+              Text("Res")
             }
         }.foregroundColor(.black).background(Color.white.opacity(0.6))
     }

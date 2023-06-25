@@ -16,3 +16,5 @@ Simple algebra to simplify the loop
     - https://randomascii.wordpress.com/2011/08/13/faster-fractals-through-algebra/
 (TODO?) approximation for higher zoom when floats run out of precision:
     - https://math.stackexchange.com/questions/939270/perturbation-of-mandelbrot-set-fractal
+
+## Higher Precision Math

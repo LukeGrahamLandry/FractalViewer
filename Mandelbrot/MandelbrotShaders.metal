@@ -8,11 +8,11 @@ typedef struct {
 } VertOut;
 
 typedef struct {
-    float zoom;
-    float2 c_offset;
+    df64 zoom;
+    df64_2 c_offset;
     int32_t steps;
     int32_t colour_count;
-    float2 z_initial;
+    df64_2 z_initial;
 } ShaderInputs;
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.
@@ -50,4 +50,3 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
 
 // TODO: show corisponding julia set
 // TODO: move around c for julia set
-// TODO: beware fast-math when i start cheating precision
