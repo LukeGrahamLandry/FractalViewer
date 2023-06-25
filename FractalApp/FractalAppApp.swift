@@ -22,12 +22,14 @@ struct FractalAppApp: App {
 struct ContentView: View {
     var model = Model();
     @ObservedObject var show = M();
+    // The view automatically reruns when this changes.
+    @Environment(\.displayScale) var displayScale: CGFloat;
     
     var body: some View {
         if self.show.show_ui {
-            MetalView(model).overlay(ConfigView(model), alignment: .topLeading)
+            MetalView(model, self.displayScale).overlay(ConfigView(model), alignment: .topLeading)
         } else {
-            MetalView(model)
+            MetalView(model, self.displayScale)
         }
     }
     
@@ -79,7 +81,6 @@ struct ConfigView: View {
             } label: {
               Text("Steps")
             }
-            
             LabeledContent {
                 TextField("Wrap", text: $wrap_text).onSubmit {
                     if let wrap = Int32(self.wrap_text) {
@@ -91,7 +92,37 @@ struct ConfigView: View {
             } label: {
               Text("Wrap")
             }
-        }.foregroundColor(.black).background(Color.white.opacity(0.75))
+            
+            let zr_binding = Binding(
+                get: { "\(self.model.fractal.input.z_initial.x)" },
+                set: {
+                    if let z = Float($0) {
+                        self.model.fractal.input.z_initial.x = min(max(z, -2.0), 2.0);
+                        self.model.dirty = true;
+                    }
+                }
+            );
+            
+            LabeledContent {
+                TextField("Z_r", text: zr_binding).frame(width: 100.0)
+            } label: {
+              Text("Z_r")
+            }
+            let zi_binding = Binding(
+                get: { "\(self.model.fractal.input.z_initial.y)" },
+                set: {
+                    if let z = Float($0) {
+                        self.model.fractal.input.z_initial.y = min(max(z, -2.0), 2.0);
+                        self.model.dirty = true;
+                    }
+                }
+            );
+            LabeledContent {
+                TextField("Z_i", text: zi_binding).frame(width: 100.0)
+            } label: {
+              Text("Z_i")
+            }
+        }.foregroundColor(.black).background(Color.white.opacity(0.6))
     }
 }
 

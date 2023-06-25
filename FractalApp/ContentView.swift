@@ -25,19 +25,24 @@ struct MetalView: NSViewRepresentable {
         return mtkView;
     }
     
-    init(_ m: Model){
+    init(_ m: Model, _ ds: CGFloat){
         self.model = m;
+        // There seem to be multiple instance of the view floating around.
+        // You need to store this on the model instead of just using it in the closure.
+        model.displayScale = ds;
         
-        // TODO: have zoom be centered on mouse position even when settings open.
+        // Zoom
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
-            let zoom_delta = Float32($0.scrollingDeltaY) * 0.001 * m.fractal.input.zoom;
+            let zoom_delta = Float32($0.scrollingDeltaY) * 0.0003 * m.fractal.input.zoom;
             let old_zoom = m.fractal.input.zoom;
             let new_zoom = max(min(old_zoom + zoom_delta, 300000000.0), 1.0);
             
             // We want the zoom to be centered on the mouse.
             // So calculate the mouse position and then see how much it would move with the new zoom
             // and translate the camera by that much to compensate.
-            let screen_mouse_pos = float32x2_t(Float($0.locationInWindow.x), Float(m.fractal.mtl_layer.drawableSize.height - $0.locationInWindow.y));
+            let mx = Float($0.locationInWindow.x * m.displayScale);
+            let my = Float(m.fractal.mtl_layer.drawableSize.height - ($0.locationInWindow.y * m.displayScale))
+            let screen_mouse_pos = float32x2_t(mx, my);
             let c_mouse_offset = screen_mouse_pos / old_zoom;
             let c_new_mouse_offset = screen_mouse_pos / new_zoom;
             m.fractal.input.c_offset += c_mouse_offset - c_new_mouse_offset;
@@ -48,11 +53,15 @@ struct MetalView: NSViewRepresentable {
             return $0
         };
         
-        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved]) {
-            
-            return $0
+        // Drag to move
+        NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) {
+            let delta = float32x2_t(Float($0.deltaX), Float($0.deltaY));
+            m.fractal.input.c_offset -= delta / m.fractal.input.zoom;
+            m.dirty = true;
+            return nil;
         }
         
+        // Keys to move
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
             let move_speed = 10.0 / m.fractal.input.zoom;
             // https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode
@@ -73,6 +82,7 @@ struct MetalView: NSViewRepresentable {
             return nil;
         };
         
+        // Stop key moving
         NSEvent.addLocalMonitorForEvents(matching: [.keyUp]) {
             // https://stackoverflow.com/questions/1918841/how-to-convert-ascii-character-to-cgkeycode
             // TODO: theres no way this is what you're supposed to do
@@ -110,8 +120,8 @@ struct MetalView: NSViewRepresentable {
         
         func draw(in view: MTKView) {
             if parent.model.delta != float32x2_t(0.0, 0.0) {
-                parent.model.fractal.input.c_offset += parent.model.delta;
-                parent.model.fractal.input.c_offset = clamp(parent.model.fractal.input.c_offset, min: float32x2_t(-5, -5), max: float32x2_t(5, 5));
+                parent.model.fractal.input.z_initial += parent.model.delta;
+                parent.model.fractal.input.z_initial = clamp(parent.model.fractal.input.z_initial, min: float32x2_t(-5, -5), max: float32x2_t(5, 5));
             } else if !parent.model.dirty {
                 // If not moving and haven't zoomed, don't bother rendering this frame.
                 return;
@@ -131,4 +141,6 @@ class Model: ObservableObject {
     @Published var fractal = MandelbrotRender();
     var delta = float32x2_t(0.0, 0.0);
     var dirty = true;
+    // Can't just put @Environment on this field because reading it every frame while zooming is really slow.
+    var displayScale: CGFloat = 1.0;
 }

@@ -10,6 +10,7 @@ typedef struct {
     float2 c_offset;
     int32_t resolution;
     int32_t colour_count;
+    float2 z_initial;
 } ShaderInputs;
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.
@@ -28,7 +29,7 @@ float3 hsv2rgb(float3 c){
 
 fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int i = 0;
-    float2 z = float2(0.0, 0.0);
+    float2 z = input.z_initial;
     float2 c = { pixel.position.x, pixel.position.y};
     c /= input.zoom;
     c += input.c_offset;
@@ -42,3 +43,7 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
     float3 hsv = { (float) (i % input.colour_count) / (float) input.colour_count, 1.0, 1.0 };
     return float4(hsv2rgb(hsv), 1.0);
 }
+
+// TODO: move around plane to chance starting z.
+// TODO: show corisponding julia set
+// TODO: move around c for julia set
