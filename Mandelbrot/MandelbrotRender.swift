@@ -25,7 +25,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
-        input = ShaderInputs(zoom: 300.0, c_offset: float64x2_t(x: -2.85, y: -1.32), steps: 500, colour_count: 100, z_initial: float64x2_t(x: 0.0, y: 0.0));
+        input = ShaderInputs();
     }
 
     mutating func draw() {
@@ -45,7 +45,8 @@ struct MandelbrotRender {
             c_offset: df64_2(input.c_offset),
             steps: input.steps,
             colour_count: input.colour_count,
-            z_initial: df64_2(input.z_initial)
+            z_initial: df64_2(input.z_initial),
+            use_doubles: input.use_doubles
         );
         // Stride vs size!
         encoder.setFragmentBytes(&real_inputs, length: MemoryLayout<RealShaderInputs>.stride, index: 0);
@@ -57,12 +58,13 @@ struct MandelbrotRender {
 }
 
 struct ShaderInputs {
-    var zoom: Float64;
+    var zoom: Float64 = 300.0;
     // This is added after pixel coordinates are scaled so it's in the complex units for the actual mandelbrot function. 
-    var c_offset: float64x2_t;
-    var steps: Int32;
-    var colour_count: Int32;
-    var z_initial: float64x2_t;
+    var c_offset = SIMD2<Float64>(x: -2.85, y: -1.32);
+    var steps: Int32 = 500;
+    var colour_count: Int32 = 100;
+    var z_initial = SIMD2<Float64>(x: 0.0, y: 0.0);
+    var use_doubles = true;
 }
 
 struct RealShaderInputs {
@@ -71,23 +73,26 @@ struct RealShaderInputs {
     var steps: Int32;
     var colour_count: Int32;
     var z_initial: df64_2;
+    var use_doubles: Bool;
 }
 
+// https://andrewthall.org/papers/df64_qf128.pdf
+
 struct df64_t {
-    var v: float32x2_t;
+    var v: SIMD2<Float32>;
     init(_ a: Double) {
         let SPLITTER = Double((1 << 29) + 1);
         let t = a * SPLITTER;
         let x = t - (t - a);
         let y = a - x;
-        self.v = float32x2_t(Float(x), Float(y));
+        self.v = SIMD2<Float32>(Float(x), Float(y));
     }
 }
 
 struct df64_2 {
     var x: df64_t;
     var y: df64_t;
-    init(_ v: float64x2_t) {
+    init(_ v: SIMD2<Float64>) {
         self.x = df64_t(v.x);
         self.y = df64_t(v.y);
     }

@@ -103,7 +103,8 @@ typedef struct df64 {
     bool operator<(df64 other) {
         return df64_lt(this->v, other.v);
     }
-    float toFloat(){
+    
+    float toFloat() const {
         return v.x;
     }
 private: df64(float2 vv){
@@ -147,6 +148,10 @@ typedef struct df64_2 {
     }
     df64_2 operator/(df64_2 other) {
         return { this->x / other.x, this->y / other.y};
+    }
+    
+    float2 toFloat2() const {
+        return { x.toFloat(), y.toFloat() };
     }
 } df64_2;
 

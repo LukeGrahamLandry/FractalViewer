@@ -118,18 +118,39 @@ struct ConfigView: View {
               Text("Z_i")
             }
             
+            let min_res = 1.0;
             let max_res = 5.0;
             let resolution_binding = Binding(
-                get: { max_res - self.model.resolutionScale + 1},
+                get: { max_res - self.model.resolutionScale + min_res},
                 set: {
-                    self.model.resolutionScale = max_res - $0 + 1;
+                    self.model.resolutionScale = max_res - $0 + min_res;
                     self.model.dirty = true;
                 }
             );
             LabeledContent {
-                Slider(value: resolution_binding, in: 1...max_res).frame(width: 100.0)
+                Slider(value: resolution_binding, in: min_res...max_res).frame(width: 100.0)
             } label: {
               Text("Res")
+            }
+            let size = self.model.scaledDrawSize();
+            Text("\(Int(size.width))x\(Int(size.height)) px.")
+            
+            let doubles_binding = Binding(
+                get: { self.model.fractal.input.use_doubles},
+                set: {
+                    self.model.fractal.input.use_doubles = $0;
+                    self.model.dirty = true;
+                }
+            );
+            Group {
+                Toggle(isOn: doubles_binding, label: { Text("Use Doubles") })
+                Button("Reset", action: {
+                    self.model.resolutionScale = 1.0;
+                    self.model.fractal.input = ShaderInputs();
+                    self.model.dirty = true;
+                    self.steps_text = "\(model.fractal.input.steps)";
+                    self.wrap_text = "\(model.fractal.input.colour_count)";
+                }).background(Color.gray)
             }
         }.foregroundColor(.black).background(Color.white.opacity(0.6))
     }

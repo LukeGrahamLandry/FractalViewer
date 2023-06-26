@@ -13,6 +13,7 @@ typedef struct {
     int32_t steps;
     int32_t colour_count;
     df64_2 z_initial;
+    bool use_doubles;
 } ShaderInputs;
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.
@@ -27,7 +28,8 @@ float3 hsv2rgb(float3 c){
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
+// TODO: can these be templates?
+int count_iters_doubles(ShaderInputs input, VertOut pixel) {
     int i = 0;
     df64_2 c = pixel.position.xy;
     c = c / df64_2(input.zoom);
@@ -40,7 +42,35 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
         z = z + c;
         zSq = z * z;
     }
-    // Sad branch noises but nobody cares. 
+    return i;
+}
+// TODO: not passing by constant ref because it makes calling function annoying. hoping compiler just picks the best one.
+int count_iters_floats(ShaderInputs input, VertOut pixel) {
+    int i = 0;
+    float2 c = pixel.position.xy;
+    c = c / input.zoom.toFloat();
+    c = c + input.c_offset.toFloat2();
+    float2 z = input.z_initial.toFloat2();
+    float2 zSq = z * z;
+    for (;i<input.steps && (zSq.x + zSq.y) < 4;i++){
+        z.y = (z.x + z.x) * z.y;
+        z.x = zSq.x - zSq.y;
+        z = z + c;
+        zSq = z * z;
+    }
+    return i;
+}
+
+fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
+    int i;
+    // Branches are bad but every pixel is guarenteeed to take the same one so I think it's fine.
+    // TODO: split these into different shaders.
+    if (input.use_doubles) {
+        i = count_iters_doubles(input, pixel);
+    } else {
+        i = count_iters_floats(input, pixel);
+    }
+    
     if (i == input.steps) {
         return {0.0, 0.0, 0.0, 1.0};
     }

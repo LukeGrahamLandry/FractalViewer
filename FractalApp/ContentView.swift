@@ -42,7 +42,7 @@ struct MetalView: NSViewRepresentable {
             let mx = Float64($0.locationInWindow.x * s);
             // TODO: make sure this is reading the right size compared to resolutionScale
             let my = Float64(m.fractal.mtl_layer.drawableSize.height - ($0.locationInWindow.y * s))
-            let screen_mouse_pos = float64x2_t(mx, my);
+            let screen_mouse_pos = SIMD2<Float64>(mx, my);
             let c_mouse_offset = screen_mouse_pos / old_zoom;
             let c_new_mouse_offset = screen_mouse_pos / new_zoom;
             m.fractal.input.c_offset += c_mouse_offset - c_new_mouse_offset;
@@ -56,7 +56,7 @@ struct MetalView: NSViewRepresentable {
         // Drag to move
         NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) {
             let s = m.displayScale / m.resolutionScale;
-            let delta = float64x2_t(Float64($0.deltaX), Float64($0.deltaY)) * s;
+            let delta = SIMD2<Float64>(Float64($0.deltaX), Float64($0.deltaY)) * s;
             m.fractal.input.c_offset -= delta / m.fractal.input.zoom;
             m.dirty = true;
             return nil;
@@ -120,8 +120,8 @@ struct MetalView: NSViewRepresentable {
             // TODO: Hack!
             if !self.parent.model.isFakeResizing {
                 // If this size event was sent because we're changing the resolution, don't forget what the real size was.
-                // TODO: scale by resolution so we don't break resizing.
-                self.parent.model.realSize = size;
+                let s = self.parent.model.resolutionScale;
+                self.parent.model.realSize = CGSize(width: size.width * s, height: size.height * s);
                 
                 // Changing resolution already set mtl_layer.drawableSize so don't bother.
                 self.parent.model.fractal.mtl_layer.drawableSize = self.parent.model.scaledDrawSize();
@@ -129,9 +129,9 @@ struct MetalView: NSViewRepresentable {
         }
         
         func draw(in view: MTKView) {
-            if parent.model.delta != float64x2_t(0.0, 0.0) {
+            if parent.model.delta != SIMD2<Float64>(0.0, 0.0) {
                 parent.model.fractal.input.z_initial += parent.model.delta;
-                parent.model.fractal.input.z_initial = clamp(parent.model.fractal.input.z_initial, min: float64x2_t(-2, -2), max: float64x2_t(2, 2));
+                parent.model.fractal.input.z_initial = clamp(parent.model.fractal.input.z_initial, min: SIMD2<Float64>(-2, -2), max: SIMD2<Float64>(2, 2));
             } else if !parent.model.dirty {
                 // If not moving and haven't zoomed, don't bother rendering this frame.
                 return;
@@ -149,7 +149,7 @@ struct MetalView: NSViewRepresentable {
 
 class Model: ObservableObject {
     @Published var fractal = MandelbrotRender();
-    var delta = float64x2_t(0.0, 0.0);
+    var delta = SIMD2<Float64>(0.0, 0.0);
     var dirty = true;
     // Can't just put @Environment on this field because reading it every frame while zooming is really slow.
     var displayScale: CGFloat = 1.0;
@@ -164,20 +164,27 @@ class Model: ObservableObject {
     var resolutionScale: Float64 = 1.0 {
         didSet {
             if let view = self.mtkView {
+                // Update the canvas size.
                 let new_size = self.scaledDrawSize();
                 self.isFakeResizing = true;
                 view.drawableSize = new_size;
                 self.fractal.mtl_layer.drawableSize = new_size;
                 self.isFakeResizing = false;
-                // TODO: translate to adjust so you stay looking at center of screen
+                
+                
+                // Compensate with zoom so you stay looking at the same area (this fixes translation as well).
+                let old_scale = oldValue;
+                let new_scale = self.resolutionScale;
+                let raw_zoom = self.fractal.input.zoom * old_scale;
+                self.fractal.input.zoom = raw_zoom / new_scale;
+
             }
         }
     }
     
     func scaledDrawSize() -> CGSize {
-        let w = self.realSize.width / self.resolutionScale;
-        let h = self.realSize.height / self.resolutionScale;
-        // TODO: clamp to positive
+        let w = max(50.0, self.realSize.width / self.resolutionScale);
+        let h = max(50.0, self.realSize.height / self.resolutionScale);
         return CGSize(width: w, height: h);
     }
 }
