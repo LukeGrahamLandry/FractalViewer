@@ -7,6 +7,8 @@ struct FractalAppApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+        }.commands {
+            SidebarCommands()
         }
     }
 }
@@ -14,25 +16,24 @@ struct FractalAppApp: App {
 // TODO: this feels hacky
 struct ContentView: View {
     var model = Model();
-    @ObservedObject var show = M();
     // The view automatically reruns when this changes.
     @Environment(\.displayScale) var displayScale: CGFloat;
     
     var body: some View {
-        if self.show.show_ui {
-            MetalView(model, self.displayScale).overlay(ConfigView(model), alignment: .topLeading)
-        } else {
-            MetalView(model, self.displayScale)
+        NavigationView {
+            Group {
+                ConfigView(model)
+                PosGetter(model, self.displayScale)
+            }
         }
     }
-    
+        
     init() {
-        let s = self.show;
         let m = self.model;
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
             switch ($0.keyCode){
             case 14:   // e
-                s.show_ui = !s.show_ui;
+                NSApp.sendAction(#selector(NSSplitViewController.toggleSidebar(_:)), to: nil, from: nil)
                 m.dirty = true;
             default:
                 return $0;
@@ -152,13 +153,8 @@ struct ConfigView: View {
                     self.wrap_text = "\(model.fractal.input.colour_count)";
                 }).background(Color.gray)
             }
-        }.foregroundColor(.black).background(Color.white.opacity(0.6))
+        }.foregroundColor(.white)
     }
-}
-
-// TODO: Lazy. I hate this. its just for a closure
-class M: ObservableObject {
-    @Published var show_ui = false;
 }
 
 // https://stackoverflow.com/questions/65743619/close-swiftui-application-when-last-window-is-closed

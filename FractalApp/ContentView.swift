@@ -1,6 +1,20 @@
 import SwiftUI
 import MetalKit
 
+struct PosGetter: View {
+    var m: Model;
+    var ds: CGFloat
+    init(_ m: Model, _ ds: CGFloat){
+        self.m = m;
+        self.ds = ds;
+    }
+    var body: some View {
+        GeometryReader { geo ->MetalView in
+            MetalView(self.m, self.ds, geo)
+        }
+    }
+}
+
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
     var model: Model;
@@ -23,11 +37,22 @@ struct MetalView: NSViewRepresentable {
         return self.model.mtkView!;
     }
     
-    init(_ m: Model, _ ds: CGFloat){
+    init(_ m: Model, _ ds: CGFloat, _ geo: GeometryProxy){
         self.model = m;
         // There seem to be multiple instance of the view floating around.
         // You need to store this on the model instead of just using it in the closure.
         model.displayScale = ds;
+        
+        let new_area = geo.frame(in: .global);
+        if let old_area = m.canvasArea {
+            let new_corner = SIMD2<Float64>(old_area.minX, old_area.minY);
+            let old_corner = SIMD2<Float64>(new_area.minX, new_area.minY);
+            let s = m.displayScale / m.resolutionScale / m.fractal.input.zoom;
+            let delta = (old_corner - new_corner) * s;
+            m.fractal.input.c_offset += delta;
+        }
+        
+        m.canvasArea = new_area;
         
         // Zoom
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
@@ -55,6 +80,9 @@ struct MetalView: NSViewRepresentable {
         
         // Drag to move
         NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDragged]) {
+            if m.canvasArea != nil && !m.canvasArea!.contains($0.locationInWindow) {
+                return $0;
+            }
             let s = m.displayScale / m.resolutionScale;
             let delta = SIMD2<Float64>(Float64($0.deltaX), Float64($0.deltaY)) * s;
             m.fractal.input.c_offset -= delta / m.fractal.input.zoom;
@@ -105,6 +133,7 @@ struct MetalView: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: MTKView, context: NSViewRepresentableContext<MetalView>) {
+        
     }
     
     class Coordinator : NSObject, MTKViewDelegate {
@@ -143,6 +172,7 @@ struct MetalView: NSViewRepresentable {
             parent.model.fractal.draw();
             debug.end();
             parent.model.dirty = false;
+        
         }
     }
 }
@@ -154,7 +184,8 @@ class Model: ObservableObject {
     // Can't just put @Environment on this field because reading it every frame while zooming is really slow.
     var displayScale: CGFloat = 1.0;
     var realSize: CGSize = CGSize(width: 0.0, height: 0.0);
-    var mtkView: MTKView?
+    var mtkView: MTKView?;
+    var canvasArea: CGRect?;
     
     // TODO: Hack! Need to set the drawableSize on the view (as well as layer) so it's not blurry but that calls the change size method which is what I rely on getting real sizes when you resize the window. Probably need to rearange the view hierarchy so it recreates the whole metal view when the slider changes.
         
