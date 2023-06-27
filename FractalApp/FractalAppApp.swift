@@ -1,5 +1,7 @@
 import SwiftUI
 
+typealias float2 = SIMD2<Float64>;
+
 @main
 struct FractalAppApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
@@ -18,16 +20,17 @@ struct ContentView: View {
     var model = Model();
     // The view automatically reruns when this changes.
     @Environment(\.displayScale) var displayScale: CGFloat;
+    @State private var resolutionScale: Float64 = 1.0;
     
     var body: some View {
         NavigationView {
             Group {
-                ConfigView(model)
-                PosGetter(model, self.displayScale)
+                ConfigView(model: model, steps_text: "\(model.input.steps)", wrap_text: "\(model.input.colour_count)", resolutionScale: $resolutionScale)
+                PosGetter(model: model, displayScale: self.displayScale, resolutionScale: $resolutionScale)
             }
-        }
+        } 
     }
-        
+    
     init() {
         let m = self.model;
         NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
@@ -45,21 +48,20 @@ struct ContentView: View {
 
 struct ConfigView: View {
     @ObservedObject var model: Model;
-    @State private var steps_text: String;
-    @State private var wrap_text: String;
-    
-    init(_ model: Model) {
-        self.model = model;
-        self.steps_text = "\(model.fractal.input.steps)";
-        self.wrap_text = "\(model.fractal.input.colour_count)";
-    }
+    @State var steps_text: String;
+    @State var wrap_text: String;
+    @Binding var resolutionScale: Float64;
     
     // TODO: toggle between c_offset and z_initial
     var body: some View {
         VStack {
-            Text("X: \(model.fractal.input.c_offset.x)")
-            Text("Y: \(model.fractal.input.c_offset.y)")
-            Text("\(Int(model.fractal.input.zoom))x")
+            Group {
+                Text("X: \(model.input.c_offset.x)")
+                Text("Y: \(model.input.c_offset.y)")
+                Text("\(Int(model.input.zoom))x")
+                Text("2^\(Int(log2(model.input.zoom)))x")
+                Text("10^\(Int(log10(model.input.zoom)))x")
+            }
             
             // TODO: wrap these in thier own view? Field can take ParseableFormatStyle to parse numbers?
             // TODO: show explanation of what the numbers do.
@@ -68,10 +70,10 @@ struct ConfigView: View {
                     if let steps = Int32(self.steps_text) {
                         // This is capped at the point where changes stop being visable anyway.
                         // Should go up when I figure out how to zoom farther
-                        self.model.fractal.input.steps = min(max(steps, 2), 10000);
+                        self.model.input.steps = min(max(steps, 2), 10000);
                         self.model.dirty = true;
                     }
-                    self.steps_text = "\(self.model.fractal.input.steps)";
+                    self.steps_text = "\(self.model.input.steps)";
                 }.frame(width: 50.0)
             } label: {
               Text("Steps")
@@ -79,10 +81,10 @@ struct ConfigView: View {
             LabeledContent {
                 TextField("Wrap", text: $wrap_text).onSubmit {
                     if let wrap = Int32(self.wrap_text) {
-                        self.model.fractal.input.colour_count = min(max(wrap, 2), 10000);
+                        self.model.input.colour_count = min(max(wrap, 2), 10000);
                         self.model.dirty = true;
                     }
-                    self.wrap_text = "\(self.model.fractal.input.colour_count)";
+                    self.wrap_text = "\(self.model.input.colour_count)";
                 }.frame(width: 50.0)
             } label: {
               Text("Wrap")
@@ -90,10 +92,10 @@ struct ConfigView: View {
             
             // TODO: show this position as a little plane
             let zr_binding = Binding(
-                get: { "\(self.model.fractal.input.z_initial.x)" },
+                get: { "\(self.model.input.z_initial.x)" },
                 set: {
                     if let z = Float64($0) {
-                        self.model.fractal.input.z_initial.x = min(max(z, -2.0), 2.0);
+                        self.model.input.z_initial.x = min(max(z, -2.0), 2.0);
                         self.model.dirty = true;
                     }
                 }
@@ -105,10 +107,10 @@ struct ConfigView: View {
               Text("Z_r")
             }
             let zi_binding = Binding(
-                get: { "\(self.model.fractal.input.z_initial.y)" },
+                get: { "\(self.model.input.z_initial.y)" },
                 set: {
                     if let z = Float64($0) {
-                        self.model.fractal.input.z_initial.y = min(max(z, -2.0), 2.0);
+                        self.model.input.z_initial.y = min(max(z, -2.0), 2.0);
                         self.model.dirty = true;
                     }
                 }
@@ -122,9 +124,9 @@ struct ConfigView: View {
             let min_res = 1.0;
             let max_res = 5.0;
             let resolution_binding = Binding(
-                get: { max_res - self.model.resolutionScale + min_res},
+                get: { max_res - self.resolutionScale + min_res},
                 set: {
-                    self.model.resolutionScale = max_res - $0 + min_res;
+                    self.resolutionScale = max_res - $0 + min_res;
                     self.model.dirty = true;
                 }
             );
@@ -137,9 +139,9 @@ struct ConfigView: View {
             Text("\(Int(size.width))x\(Int(size.height)) px.")
             
             let doubles_binding = Binding(
-                get: { self.model.fractal.input.use_doubles},
+                get: { self.model.input.use_doubles},
                 set: {
-                    self.model.fractal.input.use_doubles = $0;
+                    self.model.input.use_doubles = $0;
                     self.model.dirty = true;
                 }
             );
@@ -147,11 +149,12 @@ struct ConfigView: View {
                 Toggle(isOn: doubles_binding, label: { Text("Use Doubles") })
                 Button("Reset", action: {
                     self.model.resolutionScale = 1.0;
-                    self.model.fractal.input = ShaderInputs();
+                    self.model.input = ShaderInputs();
                     self.model.dirty = true;
-                    self.steps_text = "\(model.fractal.input.steps)";
-                    self.wrap_text = "\(model.fractal.input.colour_count)";
+                    self.steps_text = "\(model.input.steps)";
+                    self.wrap_text = "\(model.input.colour_count)";
                 }).background(Color.gray)
+                
             }
         }.foregroundColor(.white)
     }
