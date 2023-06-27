@@ -33,7 +33,7 @@ int count_iters_doubles(ShaderInputs input, VertOut pixel) {
     int i = 0;
     df64_2 c = pixel.position.xy;
     c = c / df64_2(input.zoom);
-    c = c + df64_2(input.c_offset);
+    c = c + input.c_offset;
     df64_2 z = input.z_initial;
     df64_2 zSq = z * z;
     for (;i<input.steps && (zSq.x + zSq.y).toFloat() < 4;i++){
@@ -61,6 +61,7 @@ int count_iters_floats(ShaderInputs input, VertOut pixel) {
     return i;
 }
 
+// TODO: Since I can compile shaders at runtime, you could enter an equation in a text box and I could do the Newton fractal 
 fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int i;
     // Branches are bad but every pixel is guarenteeed to take the same one so I think it's fine.

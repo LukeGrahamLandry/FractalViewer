@@ -16,7 +16,6 @@ float4 twoSumComp( float2 ari , float2 bri ) {
 }
 
 // Assumes a > b
-// TODO: can they be equal?
 float2 quickTwoSum( float a , float b ){
     float s=a+b;
     float e=b-(s-a);

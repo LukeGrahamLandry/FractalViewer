@@ -1,5 +1,6 @@
 import SwiftUI
 
+// TODO: Figure out how much xcode junk I can gitignore. 
 typealias float2 = SIMD2<Float64>;
 
 @main
@@ -15,7 +16,6 @@ struct FractalAppApp: App {
     }
 }
 
-// TODO: this feels hacky
 struct ContentView: View {
     var model = Model();
     // The view automatically reruns when this changes.
@@ -47,6 +47,7 @@ struct ContentView: View {
     }
 }
 
+// TODO: save waypoints and another tab for showing a list of them. these can be selected as screen savers 
 struct ConfigView: View {
     @ObservedObject var model: Model;
     @State var steps_text: String;
@@ -54,22 +55,45 @@ struct ConfigView: View {
     // These is watched by the MetalView.
     @Binding var resolutionScale: Float64;  // TODO: option to reduce while moving 
     @Binding var fps: Int;
+    @State var hack = false;
     
     // TODO: toggle between c_offset and z_initial
+    // TODO: option to apply momentum (for if you dont have free spinning mouse)
+    // TODO: rotation (a pain because I'd want it around the center point)
     var body: some View {
         VStack {
             Group {
                 // TODO: directly edit these in the ui
                 Text("X: \(model.c_offset.x)")
                 Text("Y: \(model.c_offset.y)")
+                
+                // TODO: these dont update when you use the slider because zoom isn't @Published
                 Text("\(Int(model.zoom))x")
                 Text("2^\(Int(log2(model.zoom)))x")
                 Text("10^\(Int(log10(model.zoom)))x")
+                
+                let zs_binding = Binding(
+                    get: { log2(self.model.zoom) },
+                    set: {
+                        let x = self.model.canvasArea!.minX + (self.model.canvasArea!.width / 2);
+                        let y = self.model.canvasArea!.minY + (self.model.canvasArea!.height / 2);
+                        self.model.zoomCentered(windowX: x, windowY: y, newZoom: pow(2, $0));
+                    }
+                );
+                let max_zoom = Float64(MAX_ZOOM_LOG2);
+                LabeledContent {
+                    Slider(value: zs_binding, in: 1...max_zoom).frame(width: 90.0)
+                } label: {
+                  Text("Zoom")
+                }
             }
             
             // TODO: wrap these in thier own view? Field can take ParseableFormatStyle to parse numbers?
             // TODO: show explanation of what the numbers do.
-            let maxSteps = 10000;
+            
+            // This needs go higher as I allow more precision but it's practically limited by render time.
+            // If I don't set a cap, you can hang the gpu (and crash the app) by setting it high on a black screen.
+            let maxSteps = 20000;
             LabeledContent {
                 TextField("Steps", text: $steps_text).onSubmit {
                     if let steps = Int(self.steps_text) {
@@ -154,13 +178,17 @@ struct ConfigView: View {
             } label: {
               Text("FPS")
             }
-            // TODO: show frame time somehow so you can see how hard it's working 
             
-            if self.model.usingDoubles() {
-                Text("Precision: float-float")
-            } else {
-                Text("Precision: float")
+            Group {
+                if self.model.usingDoubles() {
+                    Text("Precision: float-float")
+                } else {
+                    Text("Precision: float")
+                }
+                
+                // TODO: show frame time somehow so you can see how hard it's working. graph?
             }
+            
             
             Group {
                 Button("Reset", action: {
@@ -171,7 +199,6 @@ struct ConfigView: View {
                     self.fps = 30;
                     self.resolutionScale = 1.0;
                 }).background(Color.gray)
-                
             }
         }.foregroundColor(.white)
     }

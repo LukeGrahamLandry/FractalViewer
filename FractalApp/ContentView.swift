@@ -14,6 +14,8 @@ struct PosGetter: View {
     }
 }
 
+let MAX_ZOOM_LOG2: Int = 50;
+
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
     var model: Model;
@@ -48,8 +50,7 @@ struct MetalView: NSViewRepresentable {
         let old_scale = self.model.resolutionScale / self.model.displayScale;
         let new_scale = self.resolutionScale / self.displayScale;
         let raw_zoom = self.model.zoom * old_scale;
-        // TODO: Mutating the model here is a problem!
-        //       "[SwiftUI] Publishing changes from within view updates is not allowed, this will cause undefined behavior."
+        // This is why zoom can't be @Published
         self.model.zoom = raw_zoom / new_scale;
         
         // Save values on the model so we can get the old ones next frame. 
@@ -74,21 +75,11 @@ struct MetalView: NSViewRepresentable {
         // Zoom
         // TODO: this needs to be framerate independant
         NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
-            let zoom_delta = Float64($0.scrollingDeltaY) * 0.000008 * m.zoom / m.displayScale;
-            let old_zoom = m.zoom;
-            let max_zoom = Float64(1 << 50);
-            let new_zoom = min(max(old_zoom + zoom_delta, 1.0), max_zoom);
-            
-            // We want the zoom to be centered on the mouse.
-            // So calculate the mouse position and then see how much it would move with the new zoom
-            // and translate the camera by that much to compensate.
-            let canvas_mouse_pos = m.windowToCanvas($0.locationInWindow.x, $0.locationInWindow.y);
-            let c_mouse_offset = canvas_mouse_pos / old_zoom;
-            let c_new_mouse_offset = canvas_mouse_pos / new_zoom;
-            m.c_offset += c_mouse_offset - c_new_mouse_offset;
-            
-            m.dirty = true;
-            m.zoom = new_zoom;
+            let old_zoom_log2 = log2(m.zoom);
+            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.000001 * max(old_zoom_log2, 1.0);
+            let new_zoom_raw = pow(2, old_zoom_log2 + zoom_delta_log2)
+            let new_zoom = min(max(new_zoom_raw, 1.0), Float64(1 << MAX_ZOOM_LOG2));
+            m.zoomCentered(windowX: $0.locationInWindow.x, windowY: $0.locationInWindow.y, newZoom: new_zoom);
             return $0
         };
         
@@ -206,6 +197,18 @@ class Model: ObservableObject {
     // This is the value controlled by the slider so you can adjust performace.
     var resolutionScale: Float64 = 1.0;
     
+    // Change the zoom but adjust the translation so it looks like the zoom is centered at an arbitrary point.
+    // The chosen window position will corrispond to the same complex position before and after the zoom.
+    func zoomCentered(windowX: Float64, windowY: Float64, newZoom: Float64){
+        let oldZoom = self.zoom;
+        let center = self.windowToCanvas(windowX, windowY);
+        let c_old_offset = center / oldZoom;
+        let c_new_offset = center / newZoom;
+        self.c_offset += c_old_offset - c_new_offset;
+        self.dirty = true;
+        self.zoom = newZoom;
+    }
+    
     func scaledDrawSize() -> CGSize {
         if let area = self.canvasArea {
             let size = area.size;
@@ -214,6 +217,8 @@ class Model: ObservableObject {
             let h = max(50.0, size.height / self.resolutionScale * self.displayScale);
             return CGSize(width: w, height: h);
         }
+        
+        // This happens the first frame when nothing's been set yet but it gets the right size immediately after.
         return CGSize(width: 0, height: 0);
     }
     
@@ -246,6 +251,7 @@ class Model: ObservableObject {
         );
     }
     
+    // TODO: drop down to force one that defaults to auto. 
     func usingDoubles() -> Bool {
         return Int(self.zoom) > (1 << 22);
     }
