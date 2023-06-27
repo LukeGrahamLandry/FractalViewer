@@ -2,7 +2,11 @@
 #define float_float_h
 
 
-// All stolen from https://andrewthall.org/papers/df64_qf128.pdf
+// /////////////////////////////////////////////////////////////////////////////
+// START PAPER
+// Extended-Precision Floating-Point Numbers for GPU Computation, Andrew Thall
+// https://andrewthall.org/papers/df64_qf128.pdf
+// /////////////////////////////////////////////////////////////////////////////
 
 float4 twoSumComp( float2 ari , float2 bri ) {
     float2 s=ari+bri;
@@ -11,6 +15,8 @@ float4 twoSumComp( float2 ari , float2 bri ) {
     return float4(s.x, e.x, s.y, e.y);
 }
 
+// Assumes a > b
+// TODO: can they be equal?
 float2 quickTwoSum( float a , float b ){
     float s=a+b;
     float e=b-(s-a);
@@ -27,7 +33,6 @@ float2 df64_add(float2 a, float2 b) {
     return st.xy;
 }
 
-    
 #define df64_diff(a, b) df64_add(a, -b)
 
 float2 split(float a) {
@@ -78,6 +83,30 @@ bool df64_lt(float2 a, float2 b) {
     return (a.x < b.x || (a.x == b.x && a.y < b.y));
 }
 
+bool df64_eq(float2 a, float2 b) {
+    return all(a == b);
+}
+
+//float2 df64_log(float2 a) {
+//    float2 xi = float2 (0.0, 0.0);
+//    if (!df64_eq(a, 1.0f)) {
+//        // TODO: make sure this just never happens and take it out
+//        if (a.x <= 0.0) {
+//            xi = float2(NAN, NAN);
+//        } else {
+//            xi.x = log(a.x);
+//            xi = df64_add(df64_add(xi, df64_mult ( df64_exp(-xi ) , a )) , -1.0);
+//        }
+//    }
+//    return xi;
+//}
+
+// /////////////////////////////////////////////////////////////////////////////
+// END PAPER
+// /////////////////////////////////////////////////////////////////////////////
+
+// TODO: look at how the paper does quad floats. can I just use the above functions with (n)float to get (n+1)float? is that just slow? what does the renormalization do? maybe it keeps all the mantisa chunks consecutive?
+
 typedef struct df64 {
     float2 v;
     
@@ -107,12 +136,13 @@ typedef struct df64 {
     float toFloat() const {
         return v.x;
     }
-private: df64(float2 vv){
+private:
+    df64(float2 vv){
         v = vv;
     }
 } df64;
 
-// TODO: this should be a float4
+// TODO: this should be a float4. with new specialized versions of the other functions if I don't trust the compiler.
 typedef struct df64_2 {
     df64 x;
     df64 y;

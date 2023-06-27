@@ -2,6 +2,7 @@ import Metal
 import MetalKit
 import ScreenSaver
 
+// TODO: find some good points for this to auto-zoom into. have a few that it cycles through. should always end in a mini-brot so I can loop without looking dumb
 class MandelbrotScreensaver: ScreenSaverView {
     var fractal: MandelbrotRender;
     var input = ShaderInputs();

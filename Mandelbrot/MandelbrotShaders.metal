@@ -44,7 +44,7 @@ int count_iters_doubles(ShaderInputs input, VertOut pixel) {
     }
     return i;
 }
-// TODO: not passing by constant ref because it makes calling function annoying. hoping compiler just picks the best one.
+// TODO: not passing by constant ref because it makes calling function annoying. hoping compiler just picks the best one. should measure to make sure
 int count_iters_floats(ShaderInputs input, VertOut pixel) {
     int i = 0;
     float2 c = pixel.position.xy;
@@ -64,13 +64,14 @@ int count_iters_floats(ShaderInputs input, VertOut pixel) {
 fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int i;
     // Branches are bad but every pixel is guarenteeed to take the same one so I think it's fine.
-    // TODO: split these into different shaders.
+    // TODO: measure to make sure or split these into different shaders.
     if (input.use_doubles) {
         i = count_iters_doubles(input, pixel);
     } else {
         i = count_iters_floats(input, pixel);
     }
     
+    // TODO: toggle for colour smoothing https://en.wikipedia.org/wiki/Plotting_algorithms_for_the_Mandelbrot_set#Continuous_(smooth)_coloring
     if (i == input.steps) {
         return {0.0, 0.0, 0.0, 1.0};
     }
