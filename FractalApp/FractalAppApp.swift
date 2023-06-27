@@ -211,16 +211,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
-struct MyLabeledContent<Label: View, Content: View>: View {
-    var l: Label;
-    var c: Content;
-    init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
-        self.c = content();
-        self.l = label();
-    }
-    
-    var body: some View {
-        self.l
-        self.c
-    }
+func MyLabeledContent<Label: View, Content: View>(
+    @ViewBuilder content: () -> Content,
+    @ViewBuilder label: () -> Label
+) -> some View {
+    // Was going to use `if #available(macOS 13.0, *) { return LabeledContent(content: content, label: label); } else... `
+    // But this looks the same so why bother.
+    return HStack {
+        label()
+        content()
+    };
 }
