@@ -81,7 +81,7 @@ struct ConfigView: View {
                     }
                 );
                 let max_zoom = Float64(MAX_ZOOM_LOG2);
-                LabeledContent {
+                MyLabeledContent {
                     Slider(value: zs_binding, in: 1...max_zoom).frame(width: 90.0)
                 } label: {
                   Text("Zoom")
@@ -94,7 +94,7 @@ struct ConfigView: View {
             // This needs go higher as I allow more precision but it's practically limited by render time.
             // If I don't set a cap, you can hang the gpu (and crash the app) by setting it high on a black screen.
             let maxSteps = 20000;
-            LabeledContent {
+            MyLabeledContent {
                 TextField("Steps", text: $steps_text).onSubmit {
                     if let steps = Int(self.steps_text) {
                         // This is capped at the point where changes stop being visable anyway.
@@ -107,7 +107,7 @@ struct ConfigView: View {
             } label: {
               Text("Steps")
             }
-            LabeledContent {
+            MyLabeledContent {
                 TextField("Wrap", text: $wrap_text).onSubmit {
                     if let wrap = Int(self.wrap_text) {
                         self.model.colour_count = min(max(wrap, 2), maxSteps);
@@ -130,7 +130,7 @@ struct ConfigView: View {
                 }
             );
             
-            LabeledContent {
+            MyLabeledContent {
                 TextField("Z_r", text: zr_binding).frame(width: 100.0)
             } label: {
               Text("Z_r")
@@ -144,7 +144,7 @@ struct ConfigView: View {
                     }
                 }
             );
-            LabeledContent {
+            MyLabeledContent {
                 TextField("Z_i", text: zi_binding).frame(width: 100.0)
             } label: {
               Text("Z_i")
@@ -159,7 +159,7 @@ struct ConfigView: View {
                     self.model.dirty = true;
                 }
             );
-            LabeledContent {
+            MyLabeledContent {
                 Slider(value: resolution_binding, in: min_res...max_res).frame(width: 100.0)
             } label: {
               Text("Res")
@@ -173,7 +173,7 @@ struct ConfigView: View {
                     self.fps = Int($0);
                 }
             );
-            LabeledContent {
+            MyLabeledContent {
                 Slider(value: fps_binding, in: 5.0...60.0).frame(width: 100.0)
             } label: {
               Text("FPS")
@@ -208,5 +208,19 @@ struct ConfigView: View {
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         return true
+    }
+}
+
+struct MyLabeledContent<Label: View, Content: View>: View {
+    var l: Label;
+    var c: Content;
+    init(@ViewBuilder content: () -> Content, @ViewBuilder label: () -> Label) {
+        self.c = content();
+        self.l = label();
+    }
+    
+    var body: some View {
+        self.l
+        self.c
     }
 }
