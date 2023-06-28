@@ -16,6 +16,8 @@ struct FractalAppApp: App {
     }
 }
 
+// TODO: animate colour offset
+
 struct ContentView: View {
     var model = Model();
     // The view automatically reruns when this changes.
@@ -119,37 +121,6 @@ struct ConfigView: View {
               Text("Wrap")
             }
             
-            // TODO: show this position as a little plane
-            let zr_binding = Binding(
-                get: { "\(self.model.z_initial.x)" },
-                set: {
-                    if let z = Float64($0) {
-                        self.model.z_initial.x = min(max(z, -2.0), 2.0);
-                        self.model.dirty = true;
-                    }
-                }
-            );
-            
-            MyLabeledContent {
-                TextField("Z_r", text: zr_binding).frame(width: 100.0)
-            } label: {
-              Text("Z_r")
-            }
-            let zi_binding = Binding(
-                get: { "\(self.model.z_initial.y)" },
-                set: {
-                    if let z = Float64($0) {
-                        self.model.z_initial.y = min(max(z, -2.0), 2.0);
-                        self.model.dirty = true;
-                    }
-                }
-            );
-            MyLabeledContent {
-                TextField("Z_i", text: zi_binding).frame(width: 100.0)
-            } label: {
-              Text("Z_i")
-            }
-            
             let min_res = 1.0;
             let max_res = 5.0;
             let resolution_binding = Binding(
@@ -179,12 +150,23 @@ struct ConfigView: View {
               Text("FPS")
             }
             
+            // TODO: slider for when to switch to float
             Group {
                 if self.model.usingDoubles() {
                     Text("Precision: float-float")
                 } else {
                     Text("Precision: float")
                 }
+                
+                let z_binding = Binding(
+                    get: { self.model.z_initial },
+                    set: {
+                        self.model.z_initial = $0;
+                        self.model.dirty = true;
+                    }
+                );
+                let z_max = 2.00;
+                SliderPlane(length: 100, value: z_binding, minVal: float2(-z_max, -z_max), maxVal: float2(z_max, z_max), label: "Z Offset")
                 
                 // TODO: show frame time somehow so you can see how hard it's working. graph?
             }
@@ -221,4 +203,93 @@ func MyLabeledContent<Label: View, Content: View>(
         label()
         content()
     };
+}
+
+struct SliderPlane: View {
+    var length: CGFloat;
+    @Binding var value: float2;
+    var minVal: float2;
+    var maxVal: float2;
+    var label: String
+    
+    // TODO: make this collapsable cause they take up a lot of space
+    // TODO: allow background image of the set?
+    var body: some View {
+        VStack {
+            Divider()
+            Text(self.label)
+            GeometryReader { geo -> SliderPlaneInner in
+                SliderPlaneInner(length: length, value: $value, geo: geo, minVal: minVal, maxVal: maxVal)
+            }.frame(width: 100.0, height: 100.0)
+            
+            // TODO: Trying to edit these is really annoying because it clamps to the range after every character you type.
+            //       I need to have another field to hold the string and just highligh red or something if not valid.
+            //       Use onSubmit to update the real binding.
+            MyLabeledContent {
+                TextField("X", text: Binding(
+                    get: { "\(self.value.x)" },
+                    set: {
+                        if let val = Float64($0) {
+                            self.value.x = min(max(val, minVal.x), maxVal.x);
+                        }
+                    }
+                )).frame(width: 85.0)
+            } label: {
+              Text("X")
+            }
+            
+            MyLabeledContent {
+                TextField("Y", text: Binding(
+                    get: { "\(self.value.y)" },
+                    set: {
+                        if let val = Float64($0) {
+                            self.value.y = min(max(val, minVal.y), maxVal.y);
+                        }
+                    }
+                )).frame(width: 85.0)
+            } label: {
+              Text("Y")
+            }
+            Divider()
+        }
+    }
+}
+
+
+struct SliderPlaneInner: View {
+    var length: CGFloat;
+    @Binding var value: float2;
+    var geo: GeometryProxy;
+    var minVal: float2;
+    var maxVal: float2;
+    
+    var body: some View {
+        let rect = geo.frame(in: .local);
+        let range = self.maxVal - self.minVal;
+        let val = (self.value - self.minVal) / range;
+        let x = rect.minX + (geo.size.width * val.x);
+        let y = rect.minY + (geo.size.height * val.y);
+        
+        VStack {
+            ZStack {
+                Rectangle()
+                    .fill(.gray)
+                Circle()
+                    .fill(.black)
+                    .frame(width: 5, height: 5)
+                    .position(x: x, y: y)
+            }
+        }
+        
+        // TODO: this isnt sensitive enough
+        .gesture(DragGesture()
+                    .onChanged({ pos in
+                        let x_scale = (rect.minX - pos.location.x) / geo.size.width;
+                        let y_scale = (rect.minY - pos.location.y) / geo.size.height;
+                        let range = self.maxVal - self.minVal;
+                        let val = float2(min(max(Float64(-x_scale), 0.0), 1.0), min(max(Float64(-y_scale), 0.0), 1.0)) * range;
+                        self.value = self.minVal + val;
+                    })
+        )
+    }
 }

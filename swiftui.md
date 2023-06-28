@@ -1,5 +1,13 @@
 # Learning SwiftUI + Metal
 
+
+# Tue June 27
+
+## 2d Slider
+
+- https://stackoverflow.com/questions/67984621/2d-slider-trackpad-in-swiftui
+- Circle / Rectangle
+
 # Sat June 24
 
 ## @Environment displaySize 

@@ -14,7 +14,7 @@ struct PosGetter: View {
     }
 }
 
-let MAX_ZOOM_LOG2: Int = 50;
+let MAX_ZOOM_LOG2: Int = 55;
 
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
