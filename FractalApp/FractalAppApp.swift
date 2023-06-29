@@ -119,13 +119,11 @@ struct ConfigView: View {
                 }
             );
             
-            let max_zoom = Float64(MAX_ZOOM_LOG2);
             Text("Zoom")
             Text("\(Int(model.zoom))x")
             Text("2^\(Int(log2(model.zoom)))x")
             Text("10^\(Int(log10(model.zoom)))x")
-            Slider(value: zs_binding, in: 1...max_zoom).frame(width: 130.0)
-            
+            Slider(value: zs_binding, in: 1...MAX_ZOOM_LOG2).frame(width: 130.0)
             
             let z_binding = Binding(
                 get: { self.model.z_initial },
@@ -167,7 +165,6 @@ struct CanvasConfigView: View {
                     Text($0.rawValue.capitalized)
                 }
             }).onChange(of: self.selectedFractal, perform: { newFractal in
-                // TODO: some julia sets have dramaticlly different precission requirements, need to add a slider to select when to swap to float-float
                 self.model.julia = newFractal == .julia;
                 let temp = self.model.prevZ;
                 self.model.prevZ = self.model.z_initial;
@@ -235,16 +232,28 @@ struct CanvasConfigView: View {
               Text("FPS")
             }
             
-            // TODO: slider for when to switch to float
-            Group {
-                if self.model.usingDoubles() {
-                    Text("Precision: float-float")
-                } else {
-                    Text("Precision: float")
-                }
-                
-                // TODO: show frame time somehow so you can see how hard it's working. graph?
+            
+            if self.model.usingDoubles() {
+                Text("Precision: float-float")
+            } else {
+                Text("Precision: float")
             }
+            
+            // TODO: how to get rid of gap between label and slider
+            
+            Text("Switch Precision At:")
+            let precision_binding = Binding(
+                get: { log2(self.model.floatPrecisionCutoff) },
+                set: {
+                    self.model.floatPrecisionCutoff = pow(2, $0);
+                    self.model.dirty = true;
+                }
+            );
+            Slider(value: precision_binding, in: 1...MAX_ZOOM_LOG2).frame(width: 130.0)
+            
+                
+            // TODO: show frame time somehow so you can see how hard it's working. graph?
+            
             
             
             Group {

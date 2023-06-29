@@ -1,7 +1,7 @@
 import SwiftUI
 import MetalKit
 
-let MAX_ZOOM_LOG2: Int = 50;
+let MAX_ZOOM_LOG2: Float64 = 50;
 
 // https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
@@ -89,6 +89,7 @@ class Model: ObservableObject {
     @Published var steps = 500;
     @Published var colour_count = 100;
     @Published var julia = false;
+    @Published var floatPrecisionCutoff = Float64(1 << 22);
     var prevZ = float2(x: 0.0, y: 0.0);
     
     // TODO: this should be on the MetalView instead but it needs to not be recreated every update.
@@ -166,7 +167,7 @@ class Model: ObservableObject {
     
     // TODO: drop down to force one that defaults to auto. 
     func usingDoubles() -> Bool {
-        return Int(self.zoom) > (1 << 22);
+        return self.zoom > self.floatPrecisionCutoff;
     }
     
     func setDefaults(){
@@ -192,7 +193,7 @@ class Model: ObservableObject {
             let old_zoom_log2 = log2(self.zoom);
             let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.000005 * max(old_zoom_log2, 1.0);
             let new_zoom_raw = pow(2, old_zoom_log2 + zoom_delta_log2)
-            let new_zoom = min(max(new_zoom_raw, 1.0), Float64(1 << MAX_ZOOM_LOG2));
+            let new_zoom = min(max(new_zoom_raw, 1.0), Float64(1 << Int(MAX_ZOOM_LOG2)));
             self.zoomCentered(windowX: $0.locationInWindow.x, windowY: $0.locationInWindow.y, newZoom: new_zoom, canvas);
             return $0
         });
