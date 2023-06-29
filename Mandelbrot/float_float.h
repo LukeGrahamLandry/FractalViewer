@@ -146,6 +146,10 @@ typedef struct df64_2 {
     df64 x;
     df64 y;
     
+    df64_2(): df64_2(0.0){
+        
+    }
+    
     df64_2(df64 xx, df64 yy) {
         x = xx;
         y = yy;

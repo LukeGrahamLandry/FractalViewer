@@ -27,13 +27,17 @@ class MandelbrotScreensaver: ScreenSaverView {
     override func animateOneFrame() {
         super.animateOneFrame();
         fractal.mtl_layer.drawableSize = bounds.size;
+        var flags: Int32 = 0;
+        if input.use_doubles {
+            flags |= FLAG_USE_DOUBLES;
+        }
         fractal.draw(RealShaderInputs(
             zoom: df64_t(input.zoom),
             c_offset: df64_2(input.c_offset),
             steps: input.steps,
             colour_count: input.colour_count,
             z_initial: df64_2(input.z_initial),
-            use_doubles: input.use_doubles
+            flags: flags
         ));
     }
 }

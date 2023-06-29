@@ -7,14 +7,20 @@ typedef struct {
     float4 position [[position]];
 } VertOut;
 
+
+#define FLAG_USE_DOUBLES 1
+#define FLAG_DO_JULIA 1 << 2
+
 typedef struct {
     df64 zoom;
     df64_2 c_offset;
     int32_t steps;
     int32_t colour_count;
     df64_2 z_initial;
-    bool use_doubles;
+    int32_t flags;
+    
 } ShaderInputs;
+
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.
 // https://www.saschawillems.de/blog/2016/08/13/vulkan-tutorial-on-rendering-a-fullscreen-quad-without-buffers/
@@ -31,10 +37,20 @@ float3 hsv2rgb(float3 c){
 // TODO: can these be templates?
 int count_iters_doubles(ShaderInputs input, VertOut pixel) {
     int i = 0;
-    df64_2 c = pixel.position.xy;
-    c = c / df64_2(input.zoom);
-    c = c + input.c_offset;
-    df64_2 z = input.z_initial;
+    df64_2 c;
+    df64_2 z;
+    if (input.flags & FLAG_DO_JULIA){
+        c = input.c_offset;
+        z = pixel.position.xy;
+        z = z / input.zoom;
+        z = z + input.z_initial;
+    } else {
+        c = pixel.position.xy;
+        c = c / input.zoom;
+        c = c + input.c_offset;
+        z = input.z_initial;
+    }
+    
     df64_2 zSq = z * z;
     for (;i<input.steps && (zSq.x + zSq.y).toFloat() < 4;i++){
         z.y = (z.x + z.x) * z.y;
@@ -47,10 +63,19 @@ int count_iters_doubles(ShaderInputs input, VertOut pixel) {
 // TODO: not passing by constant ref because it makes calling function annoying. hoping compiler just picks the best one. should measure to make sure
 int count_iters_floats(ShaderInputs input, VertOut pixel) {
     int i = 0;
-    float2 c = pixel.position.xy;
-    c = c / input.zoom.toFloat();
-    c = c + input.c_offset.toFloat2();
-    float2 z = input.z_initial.toFloat2();
+    float2 c;
+    float2 z;
+    if (input.flags & FLAG_DO_JULIA){
+        c = input.c_offset.toFloat2();
+        z = pixel.position.xy;
+        z = z / input.zoom.toFloat();
+        z = z + input.z_initial.toFloat2();
+    } else {
+        c = pixel.position.xy;
+        c = c / input.zoom.toFloat();
+        c = c + input.c_offset.toFloat2();
+        z = input.z_initial.toFloat2();
+    }
     float2 zSq = z * z;
     for (;i<input.steps && (zSq.x + zSq.y) < 4;i++){
         z.y = (z.x + z.x) * z.y;
@@ -66,7 +91,7 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
     int i;
     // Branches are bad but every pixel is guarenteeed to take the same one so I think it's fine.
     // TODO: measure to make sure or split these into different shaders.
-    if (input.use_doubles) {
+    if (input.flags & FLAG_USE_DOUBLES) {
         i = count_iters_doubles(input, pixel);
     } else {
         i = count_iters_floats(input, pixel);

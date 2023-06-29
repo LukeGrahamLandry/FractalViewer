@@ -88,6 +88,8 @@ class Model: ObservableObject {
     @Published var z_initial = float2(x: 0.0, y: 0.0);
     @Published var steps = 500;
     @Published var colour_count = 100;
+    @Published var julia = false;
+    var prevZ = float2(x: 0.0, y: 0.0);
     
     // TODO: this should be on the MetalView instead but it needs to not be recreated every update.
     var gpu = MandelbrotRender();
@@ -107,7 +109,12 @@ class Model: ObservableObject {
         let center = self.windowToCanvas(windowX, windowY, canvas);
         let c_old_offset = center / oldZoom;
         let c_new_offset = center / newZoom;
-        self.c_offset += c_old_offset - c_new_offset;
+        let delta = c_old_offset - c_new_offset;
+        if self.julia {
+            self.z_initial += delta;
+        } else {
+            self.c_offset += delta;
+        }
         self.dirty = true;
         self.zoom = newZoom;
     }
@@ -139,13 +146,21 @@ class Model: ObservableObject {
     }
     
     func shaderInputs() -> RealShaderInputs {
+        var flags: Int32 = 0;
+        if self.usingDoubles() {
+            flags |= FLAG_USE_DOUBLES;
+        }
+        if self.julia {
+            flags |= FLAG_DO_JULIA;
+        }
+        
         return RealShaderInputs(
             zoom: df64_t(self.zoom),
             c_offset: df64_2(self.c_offset),
             steps: Int32(self.steps),
             colour_count: Int32(self.colour_count),
             z_initial: df64_2(self.z_initial),
-            use_doubles: self.usingDoubles()
+            flags: flags
         );
     }
     
@@ -190,7 +205,12 @@ class Model: ObservableObject {
             if (!canvas.canvasArea.contains($0.locationInWindow) || mousePos.y < 0) {
                 return $0;
             }
-            self.c_offset += self.windowToCanvasVec($0.deltaX, $0.deltaY, canvas) / self.zoom;
+            let delta = self.windowToCanvasVec($0.deltaX, $0.deltaY, canvas) / self.zoom;
+            if self.julia {
+                self.z_initial += delta;
+            } else {
+                self.c_offset += delta;
+            }
             self.dirty = true;
             return nil;
         });

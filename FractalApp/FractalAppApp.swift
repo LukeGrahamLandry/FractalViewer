@@ -145,17 +145,36 @@ struct ConfigView: View {
     }
 }
 
+enum Fractal: String, CaseIterable, Identifiable, Equatable {
+     case mandelbrot, julia
+     var id: Self { self }
+ }
+
 struct CanvasConfigView: View {
     @ObservedObject var model: Model;
     @State var steps_text: String;
     @State var wrap_text: String;
     @ObservedObject var canvas: CanvasModel;
+    @State var selectedFractal: Fractal = .mandelbrot;
     
     // TODO: toggle between c_offset and z_initial
     // TODO: option to apply momentum (for if you dont have free spinning mouse)
     // TODO: rotation (a pain because I'd want it around the center point)
     var body: some View {
         VStack {
+            Picker("Fractal", selection: $selectedFractal, content: {
+                ForEach(Fractal.allCases) {
+                    Text($0.rawValue.capitalized)
+                }
+            }).onChange(of: self.selectedFractal, perform: { newFractal in
+                // TODO: some julia sets have dramaticlly different precission requirements, need to add a slider to select when to swap to float-float
+                self.model.julia = newFractal == .julia;
+                let temp = self.model.prevZ;
+                self.model.prevZ = self.model.z_initial;
+                self.model.z_initial = temp;
+                self.model.dirty = true;
+            })
+            
             // TODO: wrap these in thier own view? Field can take ParseableFormatStyle to parse numbers?
             // TODO: show explanation of what the numbers do.
             

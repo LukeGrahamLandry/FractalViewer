@@ -58,13 +58,16 @@ struct ShaderInputs {
     var use_doubles = true;
 }
 
+let FLAG_USE_DOUBLES: Int32 = 1;
+let FLAG_DO_JULIA: Int32 = 1 << 2;
+
 struct RealShaderInputs {
     var zoom: df64_t;
     var c_offset: df64_2;
     var steps: Int32;
     var colour_count: Int32;
     var z_initial: df64_2;
-    var use_doubles: Bool;
+    var flags: Int32;
 }
 
 // https://andrewthall.org/papers/df64_qf128.pdf
