@@ -35,15 +35,6 @@ struct MetalView: NSViewRepresentable {
     
     // This gets called when an @State change triggers a view update.
     func updateNSView(_ nsView: MTKView, context: NSViewRepresentableContext<MetalView>) {
-        print("updateNSView window=\(self.canvas.windowArea); res=\(self.canvas.resolutionScale)");
-// TODO
-//        // Compensate with zoom so you stay looking at the same area.
-//        let old_scale = oldResolutionScale / oldDisplayScale;
-//        let new_scale = self.resolutionScale / self.displayScale;
-//        let raw_zoom = self.model.zoom * old_scale;
-//        // This is why zoom can't be @Published
-//        self.model.zoom = raw_zoom / new_scale;
-        
         // Update the fake canvas sizes.
         self.model.gpu.mtl_layer.drawableSize = self.model.scaledDrawSize(self.canvas);
         nsView.drawableSize = self.model.scaledDrawSize(self.canvas);
@@ -60,7 +51,7 @@ struct MetalView: NSViewRepresentable {
         
         init(_ parent: MetalView) {
             self.parent = parent
-            super.init()
+            super.init();
         }
         
         // This gets called when the window resizes OR when I change the resolution so it's kinda useless.
@@ -89,21 +80,20 @@ struct MetalView: NSViewRepresentable {
     }
 }
 
+
+// The published fields cause the ui to update. The dirty field causes the frame to redraw.
 class Model: ObservableObject {
-    // Zoom is modified in updateNSView so SwiftUI complains if this is @Published but it works without so whatever.
     @Published var zoom: Float64 = 300.0;
-    // These needs to be @Published for the config ui to update. Somehow the zoom field still updates
     @Published var c_offset = float2(x: -2.85, y: -1.32);
     @Published var z_initial = float2(x: 0.0, y: 0.0);
+    @Published var steps = 500;
+    @Published var colour_count = 100;
     
-    var steps = 500;
-    var colour_count = 100;
-    
+    // TODO: this should be on the MetalView instead but it needs to not be recreated every update.
     var gpu = MandelbrotRender();
     
     var delta = float2(0.0, 0.0);
     
-    // The published fields cause the ui to update. This field causes the frame to redraw.
     var dirty = true;
     
     // TODO: take out the parts that don't apply to the screen saver
@@ -134,7 +124,7 @@ class Model: ObservableObject {
         let s = 1.0 / canvas.resolutionScale * canvas.displayScale;
         let new_x = (x - Float64(canvas.canvasArea.minX)) * s;
         // TODO: need to use minY somehow if I ever make it not take up full window height
-        let new_y = Float64((self.gpu.mtl_layer.drawableSize.height) - (y * s));
+        let new_y = Float64((canvas.canvasArea.height * s) - (y * s));
         return float2(new_x, new_y);
     }
     
@@ -171,12 +161,9 @@ class Model: ObservableObject {
         self.steps = 500;
         self.colour_count = 100;
         self.dirty = true;
-        
     }
     
     func addEventListeners(_ canvas: CanvasModel) {
-        print("addEventListeners");
-        
         for handler in eventHandlers {
             if handler != nil {
                 NSEvent.removeMonitor(handler!);
@@ -188,7 +175,7 @@ class Model: ObservableObject {
         // TODO: this needs to be framerate independant
         self.eventHandlers.append(NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
             let old_zoom_log2 = log2(self.zoom);
-            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.00001 * max(old_zoom_log2, 1.0);
+            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.000005 * max(old_zoom_log2, 1.0);
             let new_zoom_raw = pow(2, old_zoom_log2 + zoom_delta_log2)
             let new_zoom = min(max(new_zoom_raw, 1.0), Float64(1 << MAX_ZOOM_LOG2));
             self.zoomCentered(windowX: $0.locationInWindow.x, windowY: $0.locationInWindow.y, newZoom: new_zoom, canvas);
@@ -223,6 +210,8 @@ class Model: ObservableObject {
                 self.delta.x = move_speed;
             case 13:   // w
                 self.delta.y = -move_speed;
+            case 14:   // e
+                canvas.showSidebars = !canvas.showSidebars;
             default:
                 return $0;
             }

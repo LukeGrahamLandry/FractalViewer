@@ -33,6 +33,7 @@ class CanvasModel: ObservableObject {
     // Real unscaled area in pixels. This also tells you which part of the window is the view.
     @Published var canvasArea: CGRect = .zero;
     @Published var windowArea: CGRect = .zero;
+    @Published var showSidebars = true;
 }
 
 // TODO: animate colour offset
@@ -44,25 +45,15 @@ struct ContentView: View {
     @StateObject var canvas: CanvasModel = CanvasModel();
     @State var windowGeo: GeometryProxy;
     
-//    init(_ windowGeo: GeometryProxy) {
-//        print("ContentView");
-//        let m = self.model;
-//
-//        NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
-//            switch ($0.keyCode){
-//            case 14:   // e
-//                NSApp.sendAction(#selector(NSSplitViewController.toggleSidebar(_:)), to: nil, from: nil)
-//                m.dirty = true;
-//            default:
-//                return $0;
-//            }
-//            return nil;
-//        };
-//    }
-    
     var body: some View {
-        NavigationView {
-            ConfigView(model: model, steps_text: "\(model.steps)", wrap_text: "\(model.colour_count)", canvas: self.canvas)
+        let oldResolutionScale = self.canvas.resolutionScale;
+        
+        // TODO: why does the canvas height shrink if the whole sidebar doesn't fit on screen?
+        HStack {
+            if self.canvas.showSidebars {
+                ConfigView(model: model, canvas: self.canvas).frame(width: 150.0)
+            }
+            
             GeometryReader { geo in
                 MetalView(model: self.model, canvas: self.canvas)
                     .onAppear(perform: {
@@ -71,15 +62,27 @@ struct ContentView: View {
                         self.canvas.displayScale = self.displayScale;
                     })
                     .onChange(of: geo.size, perform: { newSize in
-                        print("Resize");
                         self.canvas.canvasArea = geo.frame(in: .global);
                         self.canvas.realSize = newSize;
                     })
                     .onChange(of: self.displayScale, perform: { newScale in
                         self.canvas.displayScale = newScale;
+                        // TODO: need to figure out the right adjustZoom to do here to keep the same image when moving monitors.
+                    })
+                    .onChange(of: self.canvas.resolutionScale, perform: { [oldResolutionScale] newResolutionScale in
+                        // Compensate with zoom so you stay looking at the same area.
+                        let old_scale = oldResolutionScale / self.canvas.displayScale;
+                        let new_scale = newResolutionScale / self.canvas.displayScale;
+                        let raw_zoom = self.model.zoom * old_scale;
+                        self.model.zoom = raw_zoom / new_scale;
                     })
             }
-        }.onAppear(perform: {
+            if self.canvas.showSidebars {
+                CanvasConfigView(model: model, steps_text: "\(model.steps)", wrap_text: "\(model.colour_count)", canvas: self.canvas).frame(width: 150.0)
+            }
+            
+        }
+        .onAppear(perform: {
             self.canvas.windowArea = windowGeo.frame(in: .global);
         })
         .onChange(of: self.windowGeo.frame(in: .global), perform: { newWindowArea in
@@ -91,6 +94,59 @@ struct ContentView: View {
 // TODO: save waypoints and another tab for showing a list of them. these can be selected as screen savers 
 struct ConfigView: View {
     @ObservedObject var model: Model;
+    @ObservedObject var canvas: CanvasModel;
+    
+    // TODO: rotation (a pain because I'd want it around the center point)
+    var body: some View {
+        VStack {
+            let c_binding = Binding(
+                get: { self.model.c_offset },
+                set: {
+                    self.model.c_offset = $0;
+                    self.model.dirty = true;
+                }
+            );
+            // TODO: this is dumb until I do things in reference to the center
+            let c_max = 2.00;
+            SliderPlane(length: 100, value: c_binding, minVal: float2(-c_max, -c_max), maxVal: float2(c_max, c_max), label: "Position")
+                
+            let zs_binding = Binding(
+                get: { log2(self.model.zoom) },
+                set: {
+                    let x = self.canvas.canvasArea.minX + (self.canvas.canvasArea.width / 2);
+                    let y = self.canvas.canvasArea.minY + (self.canvas.canvasArea.height / 2);
+                    self.model.zoomCentered(windowX: x, windowY: y, newZoom: pow(2, $0), self.canvas);
+                }
+            );
+            
+            let max_zoom = Float64(MAX_ZOOM_LOG2);
+            Text("Zoom")
+            Text("\(Int(model.zoom))x")
+            Text("2^\(Int(log2(model.zoom)))x")
+            Text("10^\(Int(log10(model.zoom)))x")
+            Slider(value: zs_binding, in: 1...max_zoom).frame(width: 130.0)
+            
+            
+            let z_binding = Binding(
+                get: { self.model.z_initial },
+                set: {
+                    self.model.z_initial = $0;
+                    self.model.dirty = true;
+                }
+            );
+            let z_max = 2.00;
+            SliderPlane(length: 100, value: z_binding, minVal: float2(-z_max, -z_max), maxVal: float2(z_max, z_max), label: "Z Offset")
+            
+            Button("Reset", action: {
+                // TODO: this doesn't work if you changed the resolution
+                self.model.setDefaults();
+            }).background(Color.gray)
+        }.foregroundColor(.white)
+    }
+}
+
+struct CanvasConfigView: View {
+    @ObservedObject var model: Model;
     @State var steps_text: String;
     @State var wrap_text: String;
     @ObservedObject var canvas: CanvasModel;
@@ -100,32 +156,6 @@ struct ConfigView: View {
     // TODO: rotation (a pain because I'd want it around the center point)
     var body: some View {
         VStack {
-            Group {
-                // TODO: directly edit these in the ui
-                Text("X: \(model.c_offset.x)")
-                Text("Y: \(model.c_offset.y)")
-                
-                // TODO: these dont update when you use the slider because zoom isn't @Published
-                Text("\(Int(model.zoom))x")
-                Text("2^\(Int(log2(model.zoom)))x")
-                Text("10^\(Int(log10(model.zoom)))x")
-                
-                let zs_binding = Binding(
-                    get: { log2(self.model.zoom) },
-                    set: {
-                        let x = self.canvas.canvasArea.minX + (self.canvas.canvasArea.width / 2);
-                        let y = self.canvas.canvasArea.minY + (self.canvas.canvasArea.height / 2);
-                        self.model.zoomCentered(windowX: x, windowY: y, newZoom: pow(2, $0), self.canvas);
-                    }
-                );
-                let max_zoom = Float64(MAX_ZOOM_LOG2);
-                MyLabeledContent {
-                    Slider(value: zs_binding, in: 1...max_zoom).frame(width: 90.0)
-                } label: {
-                  Text("Zoom")
-                }
-            }
-            
             // TODO: wrap these in thier own view? Field can take ParseableFormatStyle to parse numbers?
             // TODO: show explanation of what the numbers do.
             
@@ -158,7 +188,7 @@ struct ConfigView: View {
             }
             
             let min_res = 1.0;
-            let max_res = 5.0;
+            let max_res = 8.0;
             let resolution_binding = Binding(
                 get: { max_res - self.canvas.resolutionScale + min_res},
                 set: {
@@ -194,30 +224,12 @@ struct ConfigView: View {
                     Text("Precision: float")
                 }
                 
-                let z_binding = Binding(
-                    get: { self.model.z_initial },
-                    set: {
-                        self.model.z_initial = $0;
-                        self.model.dirty = true;
-                    }
-                );
-                let z_max = 2.00;
-                SliderPlane(length: 100, value: z_binding, minVal: float2(-z_max, -z_max), maxVal: float2(z_max, z_max), label: "Z Offset")
-                
                 // TODO: show frame time somehow so you can see how hard it's working. graph?
             }
             
             
             Group {
-                Button("Reset", action: {
-                    // TODO: you need to press the button twice if you changed the resolution
-                    self.model.setDefaults();
-                    self.steps_text = "\(model.steps)";
-                    self.wrap_text = "\(model.colour_count)";
-                    self.canvas.fps = 30;
-                    self.canvas.resolutionScale = 1.0;
-                }).background(Color.gray)
-                Text("canvasUpdateCount: \(self.model.canvasUpdateCount)")
+                Text("Canvas Updates: \(self.model.canvasUpdateCount)")
             }
         }.foregroundColor(.white)
     }
@@ -263,7 +275,7 @@ struct SliderPlane: View {
             //       I need to have another field to hold the string and just highligh red or something if not valid.
             //       Use onSubmit to update the real binding.
             MyLabeledContent {
-                TextField("X", text: Binding(
+                TextField("R", text: Binding(
                     get: { "\(self.value.x)" },
                     set: {
                         if let val = Float64($0) {
@@ -272,11 +284,11 @@ struct SliderPlane: View {
                     }
                 )).frame(width: 85.0)
             } label: {
-              Text("X")
+              Text("R")
             }
             
             MyLabeledContent {
-                TextField("Y", text: Binding(
+                TextField("I", text: Binding(
                     get: { "\(self.value.y)" },
                     set: {
                         if let val = Float64($0) {
@@ -285,7 +297,7 @@ struct SliderPlane: View {
                     }
                 )).frame(width: 85.0)
             } label: {
-              Text("Y")
+              Text("I")
             }
             Divider()
         }
