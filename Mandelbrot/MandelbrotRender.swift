@@ -1,9 +1,6 @@
 import Metal
 import MetalKit
-import ScreenSaver
 
-// TODO: rearrange my classes to prepare for seperate julia set window.
-// Split the shader render part from the model. 
 struct MandelbrotRender {
     var device: MTLDevice;
     var mtl_layer: CAMetalLayer;
@@ -25,6 +22,7 @@ struct MandelbrotRender {
         mtl_layer.device = device;
         mtl_layer.pixelFormat = .bgra8Unorm;
         queue = device.makeCommandQueue()!;
+        print("Setup GPU");
     }
 
     mutating func draw(_ real_inputs: RealShaderInputs) {

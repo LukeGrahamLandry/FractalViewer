@@ -5,47 +5,86 @@ typealias float2 = SIMD2<Float64>;
 
 @main
 struct FractalAppApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate;
         
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            GeometryReader { geo in
+                ContentView(windowGeo: geo)
+            }
+            
         }.commands {
             SidebarCommands()
         }
     }
 }
 
+// These are variables that must trigger updateNSView.
+class CanvasModel: ObservableObject {
+    // This is the value controlled by the slider so you can adjust performace.
+    @Published var resolutionScale: Float64 = 1.0;
+    @Published var realSize: CGSize = .zero;
+    
+    // This comes from the monitor settings.
+    // Can't just put @Environment on this field because reading it every frame while zooming is really slow.
+    @Published var displayScale: CGFloat = 1.0;
+    @Published var fps = 30;
+    
+    // Real unscaled area in pixels. This also tells you which part of the window is the view.
+    @Published var canvasArea: CGRect = .zero;
+    @Published var windowArea: CGRect = .zero;
+}
+
 // TODO: animate colour offset
 
 struct ContentView: View {
-    var model = Model();
+    @StateObject var model = Model();
     // The view automatically reruns when this changes.
     @Environment(\.displayScale) var displayScale: CGFloat;
-    @State private var resolutionScale: Float64 = 1.0;
-    @State private var fps = 30;
+    @StateObject var canvas: CanvasModel = CanvasModel();
+    @State var windowGeo: GeometryProxy;
+    
+//    init(_ windowGeo: GeometryProxy) {
+//        print("ContentView");
+//        let m = self.model;
+//
+//        NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
+//            switch ($0.keyCode){
+//            case 14:   // e
+//                NSApp.sendAction(#selector(NSSplitViewController.toggleSidebar(_:)), to: nil, from: nil)
+//                m.dirty = true;
+//            default:
+//                return $0;
+//            }
+//            return nil;
+//        };
+//    }
     
     var body: some View {
         NavigationView {
-            Group {
-                ConfigView(model: model, steps_text: "\(model.steps)", wrap_text: "\(model.colour_count)", resolutionScale: $resolutionScale, fps: $fps)
-                PosGetter(model: model, displayScale: self.displayScale, resolutionScale: $resolutionScale, fps: $fps)
+            ConfigView(model: model, steps_text: "\(model.steps)", wrap_text: "\(model.colour_count)", canvas: self.canvas)
+            GeometryReader { geo in
+                MetalView(model: self.model, canvas: self.canvas)
+                    .onAppear(perform: {
+                        self.canvas.canvasArea = geo.frame(in: .global);
+                        self.canvas.realSize = geo.size;
+                        self.canvas.displayScale = self.displayScale;
+                    })
+                    .onChange(of: geo.size, perform: { newSize in
+                        print("Resize");
+                        self.canvas.canvasArea = geo.frame(in: .global);
+                        self.canvas.realSize = newSize;
+                    })
+                    .onChange(of: self.displayScale, perform: { newScale in
+                        self.canvas.displayScale = newScale;
+                    })
             }
-        } 
-    }
-    
-    init() {
-        let m = self.model;
-        NSEvent.addLocalMonitorForEvents(matching: [.keyDown]) {
-            switch ($0.keyCode){
-            case 14:   // e
-                NSApp.sendAction(#selector(NSSplitViewController.toggleSidebar(_:)), to: nil, from: nil)
-                m.dirty = true;
-            default:
-                return $0;
-            }
-            return nil;
-        };
+        }.onAppear(perform: {
+            self.canvas.windowArea = windowGeo.frame(in: .global);
+        })
+        .onChange(of: self.windowGeo.frame(in: .global), perform: { newWindowArea in
+            self.canvas.windowArea = newWindowArea;
+        })
     }
 }
 
@@ -54,10 +93,7 @@ struct ConfigView: View {
     @ObservedObject var model: Model;
     @State var steps_text: String;
     @State var wrap_text: String;
-    // These is watched by the MetalView.
-    @Binding var resolutionScale: Float64;  // TODO: option to reduce while moving 
-    @Binding var fps: Int;
-    @State var hack = false;
+    @ObservedObject var canvas: CanvasModel;
     
     // TODO: toggle between c_offset and z_initial
     // TODO: option to apply momentum (for if you dont have free spinning mouse)
@@ -77,9 +113,9 @@ struct ConfigView: View {
                 let zs_binding = Binding(
                     get: { log2(self.model.zoom) },
                     set: {
-                        let x = self.model.canvasArea!.minX + (self.model.canvasArea!.width / 2);
-                        let y = self.model.canvasArea!.minY + (self.model.canvasArea!.height / 2);
-                        self.model.zoomCentered(windowX: x, windowY: y, newZoom: pow(2, $0));
+                        let x = self.canvas.canvasArea.minX + (self.canvas.canvasArea.width / 2);
+                        let y = self.canvas.canvasArea.minY + (self.canvas.canvasArea.height / 2);
+                        self.model.zoomCentered(windowX: x, windowY: y, newZoom: pow(2, $0), self.canvas);
                     }
                 );
                 let max_zoom = Float64(MAX_ZOOM_LOG2);
@@ -124,9 +160,9 @@ struct ConfigView: View {
             let min_res = 1.0;
             let max_res = 5.0;
             let resolution_binding = Binding(
-                get: { max_res - self.resolutionScale + min_res},
+                get: { max_res - self.canvas.resolutionScale + min_res},
                 set: {
-                    self.resolutionScale = max_res - $0 + min_res;
+                    self.canvas.resolutionScale = max_res - $0 + min_res;
                     self.model.dirty = true;
                 }
             );
@@ -135,13 +171,13 @@ struct ConfigView: View {
             } label: {
               Text("Res")
             }
-            let size = self.model.scaledDrawSize();
+            let size = self.model.scaledDrawSize(self.canvas);
             Text("\(Int(size.width))x\(Int(size.height)) px.")
             
             let fps_binding = Binding(
-                get: { Float64(self.fps) },
+                get: { Float64(self.canvas.fps) },
                 set: {
-                    self.fps = Int($0);
+                    self.canvas.fps = Int($0);
                 }
             );
             MyLabeledContent {
@@ -178,9 +214,10 @@ struct ConfigView: View {
                     self.model.setDefaults();
                     self.steps_text = "\(model.steps)";
                     self.wrap_text = "\(model.colour_count)";
-                    self.fps = 30;
-                    self.resolutionScale = 1.0;
+                    self.canvas.fps = 30;
+                    self.canvas.resolutionScale = 1.0;
                 }).background(Color.gray)
+                Text("canvasUpdateCount: \(self.model.canvasUpdateCount)")
             }
         }.foregroundColor(.white)
     }
@@ -282,7 +319,7 @@ struct SliderPlaneInner: View {
         }
         
         // TODO: this isnt sensitive enough
-        .gesture(DragGesture()
+        .gesture(DragGesture(minimumDistance: 0.1)
                     .onChanged({ pos in
                         let x_scale = (rect.minX - pos.location.x) / geo.size.width;
                         let y_scale = (rect.minY - pos.location.y) / geo.size.height;
