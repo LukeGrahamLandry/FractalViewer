@@ -183,6 +183,10 @@ typedef struct df64_2 {
         return { this->x / other.x, this->y / other.y};
     }
     
+    df64 lengthSqr() {
+        return (x * x) + (y * y);
+    }
+    
     float2 toFloat2() const {
         return { x.toFloat(), y.toFloat() };
     }

@@ -14,7 +14,15 @@ struct Polynomial: Equatable {
     init(coefficients: Array<Float64>) {
         self.coefficients = Array(repeating: float2(0.0, 0.0), count: coefficients.count);
         for (c, val) in coefficients.enumerated() {
-            self.coefficients[c] += float2(val, 0.0);
+            self.coefficients[c] = float2(val, 0.0);
+        }
+    }
+    
+    // 0 is constants, 1 is x, 2 is x^2, etc.
+    init(coefficients: Array<float2>) {
+        self.coefficients = Array(repeating: float2(0.0, 0.0), count: coefficients.count);
+        for (c, val) in coefficients.enumerated() {
+            self.coefficients[c] = val;
         }
     }
     
@@ -22,6 +30,13 @@ struct Polynomial: Equatable {
         self = Polynomial(coefficients: [-roots[0], 1.0]);
         for i in 1...roots.count-1 {
             self = self * Polynomial(coefficients: [-roots[i], 1.0]);
+        }
+    }
+    
+    init(roots: Array<float2>) {
+        self = Polynomial(coefficients: [-roots[0], float2(1.0, 0.0)]);
+        for i in 1...roots.count-1 {
+            self = self * Polynomial(coefficients: [-roots[i], float2(1.0, 0.0)]);
         }
     }
     

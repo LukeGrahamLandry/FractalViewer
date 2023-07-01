@@ -19,7 +19,7 @@ typedef struct {
     df64_2 z_initial;
     int32_t flags;
     
-} ShaderInputs;
+} MandelbrotShaderInputs;
 
 
 // Big triangle that covers the screen so the fragment shader runs for every pixel.
@@ -35,7 +35,7 @@ float3 hsv2rgb(float3 c){
 }
 
 // TODO: can these be templates?
-int count_iters_doubles(ShaderInputs input, VertOut pixel) {
+int count_iters_doubles(MandelbrotShaderInputs input, VertOut pixel) {
     int i = 0;
     df64_2 c;
     df64_2 z;
@@ -61,7 +61,7 @@ int count_iters_doubles(ShaderInputs input, VertOut pixel) {
     return i;
 }
 // TODO: not passing by constant ref because it makes calling function annoying. hoping compiler just picks the best one. should measure to make sure
-int count_iters_floats(ShaderInputs input, VertOut pixel) {
+int count_iters_floats(MandelbrotShaderInputs input, VertOut pixel) {
     int i = 0;
     float2 c;
     float2 z;
@@ -87,7 +87,7 @@ int count_iters_floats(ShaderInputs input, VertOut pixel) {
 }
 
 // TODO: Since I can compile shaders at runtime, you could enter an equation in a text box and I could do the Newton fractal 
-fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
+fragment float4 fragment_main(constant MandelbrotShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int i;
     // Branches are bad but every pixel is guarenteeed to take the same one so I think it's fine.
     // TODO: measure to make sure or split these into different shaders.
@@ -105,5 +105,72 @@ fragment float4 fragment_main(constant ShaderInputs& input [[buffer(0)]], VertOu
     return float4(hsv2rgb(hsv), 1.0);
 }
 
-// TODO: show corisponding julia set
-// TODO: move around c for julia set
+// Newton Fractal //
+
+typedef struct {
+    df64 zoom;
+    df64_2 offset;
+    int32_t steps;
+    int32_t flags;
+    df64_2 f[4];
+    df64_2 df[4];
+    df64_2 roots[3];
+} NewtonShaderInputs;
+
+inline df64_2 complex_mul(df64_2 a, df64_2 b) {
+    df64 real = a.x * b.x - a.y * b.y;
+    df64 imaginary = a.x * b.y + a.y * b.x;
+    return df64_2(real, imaginary);
+}
+
+inline df64_2 complex_div(df64_2 a, df64_2 b) {
+    df64 denom = b.x*b.x + b.y*b.y;
+    df64 real = ((a.x * b.x) + (a.y * b.y)) / denom;
+    df64 imaginary = ((a.y * b.x) - (a.x * b.y)) / denom;
+    return df64_2(real, imaginary);
+}
+
+int newton_doubles(NewtonShaderInputs input, VertOut pixel) {
+    df64_2 z = pixel.position.xy;
+    z = z / input.zoom;
+    z = z + input.offset;
+    
+    int i = 0;
+    for (;i<input.steps;i++){
+        // TODO: this is not complex math!
+#define eval(f) (f[0] + complex_mul(z, f[1]) + complex_mul(zSq, f[2]) + complex_mul(zCu, f[3]))
+        df64_2 zSq = complex_mul(z, z);
+        df64_2 zCu = complex_mul(z, zSq);
+        df64_2 f_val = eval(input.f);
+        df64_2 df_val = eval(input.df);
+        if (length_squared(df_val.toFloat2()) < 0.00000000001) {
+            break;
+        }
+        
+        z = z - complex_div(f_val, df_val);
+#undef eval
+    }
+    
+    df64 dist1 = (z - input.roots[0]).lengthSqr();
+    df64 dist2 = (z - input.roots[1]).lengthSqr();
+    df64 dist3 = (z - input.roots[2]).lengthSqr();
+    
+    if (dist1 < dist2 && dist1 < dist3) {
+        return 0;
+    }
+    
+    // dist2 < dist1
+    if (dist2 < dist3) {
+        return 1;
+    }
+    
+    // dist3 < dist2
+    return 2;
+}
+
+fragment float4 newton_fragment_main(constant NewtonShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
+    int root = newton_doubles(input, pixel);
+    int colours = 3;
+    float3 hsv = { (float) (root % colours) / (float) colours, 1.0, 1.0 };
+    return float4(hsv2rgb(hsv), 1.0);
+}

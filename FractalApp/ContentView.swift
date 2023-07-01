@@ -72,14 +72,19 @@ struct MetalView: NSViewRepresentable {
             let debug = MTLCaptureManager.shared().makeCaptureScope(commandQueue: parent.model.gpu.queue);
             MTLCaptureManager.shared().defaultCaptureScope = debug;
             debug.begin();
-            parent.model.gpu.draw(parent.model.shaderInputs());
+            
+            let newton = true;
+            if (newton) {
+                parent.model.gpu.draw_newton(parent.model.shaderInputs());
+            } else {
+                parent.model.gpu.draw_mandelbrot(parent.model.shaderInputs());
+            }
+            
             debug.end();
             parent.model.dirty = false;
-        
         }
     }
 }
-
 
 // The published fields cause the ui to update. The dirty field causes the frame to redraw.
 class Model: ObservableObject {
@@ -146,7 +151,7 @@ class Model: ObservableObject {
         return zero - pos;
     }
     
-    func shaderInputs() -> RealShaderInputs {
+    func shaderInputs() -> MandelbrotShaderInputs {
         var flags: Int32 = 0;
         if self.usingDoubles() {
             flags |= FLAG_USE_DOUBLES;
@@ -155,7 +160,7 @@ class Model: ObservableObject {
             flags |= FLAG_DO_JULIA;
         }
         
-        return RealShaderInputs(
+        return MandelbrotShaderInputs(
             zoom: df64_t(self.zoom),
             c_offset: df64_2(self.c_offset),
             steps: Int32(self.steps),
@@ -260,24 +265,3 @@ class Model: ObservableObject {
         };
     }
 }
-
-// This is probably the next step. Start with just defining it with roots so I construct the polynomial.
-// TODO: Should be doing this on the gpu but then I need to figure out how to get data out.
-//func newton(f: (float2) -> float2, df: (float2) -> float2) -> Array<float2> {
-//    let epsilon = 0.000001;
-//    let steps = 1000;
-//    // TODO: how to pick guesses that find all roots
-//    for x in -10...10 {
-//        for y in -10...10 {
-//            var z = float2(Float64(x), Float64(y));
-//            for _ in 0...steps {
-//                // TODO: complex division
-//                let f_z = f(z);
-//                if length_squared(f_z) < (epsilon * epsilon) {
-//                    // Found a root.
-//                }
-//                z -= f_z / df(z);
-//            }
-//        }
-//    }
-//}

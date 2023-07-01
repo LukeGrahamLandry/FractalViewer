@@ -74,18 +74,6 @@ struct ContentView: View {
                         let new_scale = newResolutionScale / self.canvas.displayScale;
                         let raw_zoom = self.model.zoom * old_scale;
                         self.model.zoom = raw_zoom / new_scale;
-                        
-                        let a = Polynomial(coefficients: [1.0, 1.0]);
-                        let b = Polynomial(coefficients: [2.0, 1.0]);
-                        let c = Polynomial(coefficients: [3.0, 1.0]);
-                        let expected = Polynomial(coefficients: [6.0, 11.0, 6.0, 1.0]);
-                        let res = (a * b * c);
-                        print("mul: \(res == expected)");
-                        print("dir: \(res.derivative() == Polynomial(coefficients: [11, 12, 3]))");
-                        print("\(Polynomial(roots: [-2, 0]))");
-                        print("roots: \(Polynomial(roots: [-2, 0]) == Polynomial(coefficients: [0, 2, 1]))");
-                        
-                        
                     })
             }
             if self.canvas.showSidebars {
