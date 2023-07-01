@@ -259,8 +259,25 @@ class Model: ObservableObject {
             return nil;
         };
     }
-    
-//    func inCanvas(_ pos: float2) -> Bool {
-//
-//    }
 }
+
+// This is probably the next step. Start with just defining it with roots so I construct the polynomial.
+// TODO: Should be doing this on the gpu but then I need to figure out how to get data out.
+//func newton(f: (float2) -> float2, df: (float2) -> float2) -> Array<float2> {
+//    let epsilon = 0.000001;
+//    let steps = 1000;
+//    // TODO: how to pick guesses that find all roots
+//    for x in -10...10 {
+//        for y in -10...10 {
+//            var z = float2(Float64(x), Float64(y));
+//            for _ in 0...steps {
+//                // TODO: complex division
+//                let f_z = f(z);
+//                if length_squared(f_z) < (epsilon * epsilon) {
+//                    // Found a root.
+//                }
+//                z -= f_z / df(z);
+//            }
+//        }
+//    }
+//}

@@ -14,10 +14,15 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
-		<key>Mandelbrot.xcscheme_^#shared#^_</key>
+		<key>FractalAppTests.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>2</integer>
+		</dict>
+		<key>Mandelbrot.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>3</integer>
 		</dict>
 		<key>MandelbrotShaders.xcscheme_^#shared#^_</key>
 		<dict>
@@ -32,6 +37,11 @@
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
+		<key>A341F0E02A4F578A00B9B4EA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 		<key>A3F40FA12A45B4D9007D443F</key>
 		<dict>
 			<key>primary</key>

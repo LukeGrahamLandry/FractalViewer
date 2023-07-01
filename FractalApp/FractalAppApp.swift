@@ -1,7 +1,6 @@
 import SwiftUI
 
 // TODO: Figure out how much xcode junk I can gitignore. 
-typealias float2 = SIMD2<Float64>;
 
 @main
 struct FractalAppApp: App {
@@ -75,6 +74,18 @@ struct ContentView: View {
                         let new_scale = newResolutionScale / self.canvas.displayScale;
                         let raw_zoom = self.model.zoom * old_scale;
                         self.model.zoom = raw_zoom / new_scale;
+                        
+                        let a = Polynomial(coefficients: [1.0, 1.0]);
+                        let b = Polynomial(coefficients: [2.0, 1.0]);
+                        let c = Polynomial(coefficients: [3.0, 1.0]);
+                        let expected = Polynomial(coefficients: [6.0, 11.0, 6.0, 1.0]);
+                        let res = (a * b * c);
+                        print("mul: \(res == expected)");
+                        print("dir: \(res.derivative() == Polynomial(coefficients: [11, 12, 3]))");
+                        print("\(Polynomial(roots: [-2, 0]))");
+                        print("roots: \(Polynomial(roots: [-2, 0]) == Polynomial(coefficients: [0, 2, 1]))");
+                        
+                        
                     })
             }
             if self.canvas.showSidebars {
@@ -90,6 +101,12 @@ struct ContentView: View {
         })
     }
 }
+
+// For newton fractal, you should be able to drag the roots around.
+// Need to precalculate the roots anyway. Could colour based on steps to get within some cutoff range but
+// that's boring because close points probably aren't chaotic? 
+// TODO: should have a log view to show errors and an assert function that logs there.
+//       metal setup, making sure I find the right number of roots for polynomials, etc
 
 // TODO: save waypoints and another tab for showing a list of them. these can be selected as screen savers 
 struct ConfigView: View {
