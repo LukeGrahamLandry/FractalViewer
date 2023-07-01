@@ -51,7 +51,7 @@ struct MandelbrotRender {
     }
     
     // TODO: this is a copy-paste
-    mutating func draw_newton(_ real_inputs: MandelbrotShaderInputs) {
+    mutating func draw_newton(_ newton_inputs: NewtonShaderInputs, _ real_inputs: MandelbrotShaderInputs) {
         let drawable = mtl_layer.nextDrawable()!;
         let pass_desc = MTLRenderPassDescriptor();
         let colour_attatch = pass_desc.colorAttachments[0]!;
@@ -64,14 +64,15 @@ struct MandelbrotRender {
         let encoder = commands.makeRenderCommandEncoder(descriptor: pass_desc)!;
         encoder.setRenderPipelineState(newton_pipeline);
         
-        // TODO: temp
-        let roots = [float2(1.0, 0.0), float2(2.0, 5.0), float2(3.0, 0.0)];
-        let f = Polynomial(roots: roots);
-        let df = f.derivative();
-        var temp = NewtonShaderInputs(zoom: real_inputs.zoom, offset: real_inputs.c_offset, steps: real_inputs.steps, flags: real_inputs.flags, f0: df64_2(f.coefficients[0]), f1: df64_2(f.coefficients[1]), f2: df64_2(f.coefficients[2]), f3: df64_2(f.coefficients[3]), df0: df64_2(df.coefficients[0]), df1: df64_2(df.coefficients[1]), df2: df64_2(df.coefficients[2]), df3: df64_2(df.coefficients[3]), r0: df64_2(roots[0]), r1: df64_2(roots[1]), r2: df64_2(roots[2]));
+        var temp_newton = newton_inputs;
+        temp_newton.zoom = real_inputs.zoom;
+        temp_newton.offset = real_inputs.c_offset;
+        temp_newton.steps = real_inputs.steps;
+        temp_newton.flags = real_inputs.flags;
+        temp_newton.colour_count = real_inputs.colour_count;
         
         // Stride vs size!
-        encoder.setFragmentBytes(&temp, length: MemoryLayout<NewtonShaderInputs>.stride, index: 0);
+        encoder.setFragmentBytes(&temp_newton, length: MemoryLayout<NewtonShaderInputs>.stride, index: 0);
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3);
         encoder.endEncoding();
         commands.present(drawable);
@@ -92,6 +93,7 @@ struct OldShaderInputs {
 
 let FLAG_USE_DOUBLES: Int32 = 1;
 let FLAG_DO_JULIA: Int32 = 1 << 2;
+let FLAG_ROOT_COLOURING: Int32 = 1 << 3;
 
 struct MandelbrotShaderInputs {
     var zoom: df64_t;
@@ -118,6 +120,15 @@ struct NewtonShaderInputs {
     var r0: df64_2;
     var r1: df64_2;
     var r2: df64_2;
+    var epsilon: df64_t;
+    var colour_count: Int32;
+    
+    static func create(roots: Array<float2>) -> NewtonShaderInputs {
+        let f = Polynomial(roots: roots);
+        let df = f.derivative();
+        return NewtonShaderInputs(zoom: df64_t(1), offset: df64_2(float2(0, 0)), steps: 1, flags: 0, f0: df64_2(f.coefficients[0]), f1: df64_2(f.coefficients[1]), f2: df64_2(f.coefficients[2]), f3: df64_2(f.coefficients[3]), df0: df64_2(df.coefficients[0]), df1: df64_2(df.coefficients[1]), df2: df64_2(df.coefficients[2]), df3: df64_2(df.coefficients[3]), r0: df64_2(roots[0]), r1: df64_2(roots[1]), r2: df64_2(roots[2]), epsilon: df64_t(0.000001), colour_count: 3);
+
+    }
 };
 
 // https://andrewthall.org/papers/df64_qf128.pdf

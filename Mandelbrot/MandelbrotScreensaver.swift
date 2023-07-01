@@ -6,7 +6,7 @@ import ScreenSaver
 // TODO: give the app a settings tab where you configure the list of ^ and save info to a file that this reads at start up. 
 class MandelbrotScreensaver: ScreenSaverView {
     var fractal: MandelbrotRender;
-    var input = ShaderInputs();
+    var input = OldShaderInputs();
     
     override init?(frame: NSRect, isPreview: Bool) {
         fractal = MandelbrotRender.init();
@@ -31,7 +31,7 @@ class MandelbrotScreensaver: ScreenSaverView {
         if input.use_doubles {
             flags |= FLAG_USE_DOUBLES;
         }
-        fractal.draw(RealShaderInputs(
+        fractal.draw_mandelbrot(MandelbrotShaderInputs(
             zoom: df64_t(input.zoom),
             c_offset: df64_2(input.c_offset),
             steps: input.steps,

@@ -73,9 +73,8 @@ struct MetalView: NSViewRepresentable {
             MTLCaptureManager.shared().defaultCaptureScope = debug;
             debug.begin();
             
-            let newton = true;
-            if (newton) {
-                parent.model.gpu.draw_newton(parent.model.shaderInputs());
+            if (parent.model.selectedFractal == .newton) {
+                parent.model.gpu.draw_newton(parent.model.newtonInputs, parent.model.shaderInputs());
             } else {
                 parent.model.gpu.draw_mandelbrot(parent.model.shaderInputs());
             }
@@ -93,7 +92,7 @@ class Model: ObservableObject {
     @Published var z_initial = float2(x: 0.0, y: 0.0);
     @Published var steps = 500;
     @Published var colour_count = 100;
-    @Published var julia = false;
+    @Published var selectedFractal = Fractal.mandelbrot;
     @Published var floatPrecisionCutoff = Float64(1 << 22);
     var prevZ = float2(x: 0.0, y: 0.0);
     
@@ -108,6 +107,17 @@ class Model: ObservableObject {
     @Published var canvasUpdateCount = 0;
     var eventHandlers: Array<Any?> = [];
     
+    
+    var newtonInputs = NewtonShaderInputs.create(roots: [float2(0, 0), float2(0, 0), float2(0, 0)]);
+    @Published var r1 = float2(1.0, 0.0);
+    @Published var r2 = float2(2.0, 5.0);
+    @Published var r3 = float2(3.0, 0.0);
+    @Published var newtonColouring = NewtonColouring.root;
+    
+    init() {
+        self.updateNewton();
+    }
+    
     // Change the zoom but adjust the translation so it looks like the zoom is centered at an arbitrary point.
     // The chosen window position will corrispond to the same complex position before and after the zoom.
     func zoomCentered(windowX: Float64, windowY: Float64, newZoom: Float64, _ canvas: CanvasModel){
@@ -116,7 +126,7 @@ class Model: ObservableObject {
         let c_old_offset = center / oldZoom;
         let c_new_offset = center / newZoom;
         let delta = c_old_offset - c_new_offset;
-        if self.julia {
+        if self.selectedFractal == .julia {
             self.z_initial += delta;
         } else {
             self.c_offset += delta;
@@ -156,8 +166,11 @@ class Model: ObservableObject {
         if self.usingDoubles() {
             flags |= FLAG_USE_DOUBLES;
         }
-        if self.julia {
+        if self.selectedFractal == .julia {
             flags |= FLAG_DO_JULIA;
+        }
+        if self.newtonColouring == .root {
+            flags |= FLAG_ROOT_COLOURING;
         }
         
         return MandelbrotShaderInputs(
@@ -182,6 +195,11 @@ class Model: ObservableObject {
         self.steps = 500;
         self.colour_count = 100;
         self.dirty = true;
+    }
+    
+    func updateNewton() {
+        self.dirty = true;
+        self.newtonInputs = NewtonShaderInputs.create(roots: [r1, r2, r3]);
     }
     
     func addEventListeners(_ canvas: CanvasModel) {
@@ -212,7 +230,7 @@ class Model: ObservableObject {
                 return $0;
             }
             let delta = self.windowToCanvasVec($0.deltaX, $0.deltaY, canvas) / self.zoom;
-            if self.julia {
+            if self.selectedFractal == .julia {
                 self.z_initial += delta;
             } else {
                 self.c_offset += delta;

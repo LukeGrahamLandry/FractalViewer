@@ -10,6 +10,7 @@ typedef struct {
 
 #define FLAG_USE_DOUBLES 1
 #define FLAG_DO_JULIA 1 << 2
+#define FLAG_ROOT_COLOURING 1 << 3
 
 typedef struct {
     df64 zoom;
@@ -115,6 +116,8 @@ typedef struct {
     df64_2 f[4];
     df64_2 df[4];
     df64_2 roots[3];
+    df64 epsilon;
+    int32_t colour_count;
 } NewtonShaderInputs;
 
 inline df64_2 complex_mul(df64_2 a, df64_2 b) {
@@ -136,6 +139,9 @@ int newton_doubles(NewtonShaderInputs input, VertOut pixel) {
     z = z + input.offset;
     
     int i = 0;
+    df64 dist1;
+    df64 dist2;
+    df64 dist3;
     for (;i<input.steps;i++){
         // TODO: this is not complex math!
 #define eval(f) (f[0] + complex_mul(z, f[1]) + complex_mul(zSq, f[2]) + complex_mul(zCu, f[3]))
@@ -143,34 +149,40 @@ int newton_doubles(NewtonShaderInputs input, VertOut pixel) {
         df64_2 zCu = complex_mul(z, zSq);
         df64_2 f_val = eval(input.f);
         df64_2 df_val = eval(input.df);
-        if (length_squared(df_val.toFloat2()) < 0.00000000001) {
+        z = z - complex_div(f_val, df_val);
+        
+        // Not one big short-circuiting expression because dists are used again below.
+        dist1 = (z - input.roots[0]).lengthSqr();
+        dist2 = (z - input.roots[1]).lengthSqr();
+        dist3 = (z - input.roots[2]).lengthSqr();
+        if (df_val.lengthSqr() < input.epsilon || dist1 < input.epsilon || dist2 < input.epsilon || dist3 < input.epsilon) {
             break;
         }
-        
-        z = z - complex_div(f_val, df_val);
 #undef eval
     }
     
-    df64 dist1 = (z - input.roots[0]).lengthSqr();
-    df64 dist2 = (z - input.roots[1]).lengthSqr();
-    df64 dist3 = (z - input.roots[2]).lengthSqr();
-    
-    if (dist1 < dist2 && dist1 < dist3) {
-        return 0;
+    if (i == input.steps) {
+        return -1;
     }
     
-    // dist2 < dist1
-    if (dist2 < dist3) {
-        return 1;
+    if (input.flags & FLAG_ROOT_COLOURING){
+        if (dist1 < dist2 && dist1 < dist3) return 0;
+        else if (dist2 < dist3) return 1; // dist2 < dist1
+        else return 2; // dist3 < dist2
+    } else {
+        return i;
     }
-    
-    // dist3 < dist2
-    return 2;
 }
 
 fragment float4 newton_fragment_main(constant NewtonShaderInputs& input [[buffer(0)]], VertOut pixel [[stage_in]]) {
     int root = newton_doubles(input, pixel);
-    int colours = 3;
+    if (root == -1) {
+        return {0.0, 0.0, 0.0, 1.0};
+    }
+    int colours = input.colour_count;
+    if (input.flags & FLAG_ROOT_COLOURING){
+        colours = 3;
+    }
     float3 hsv = { (float) (root % colours) / (float) colours, 1.0, 1.0 };
     return float4(hsv2rgb(hsv), 1.0);
 }

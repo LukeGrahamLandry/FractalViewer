@@ -77,6 +77,9 @@ struct ContentView: View {
                     })
             }
             if self.canvas.showSidebars {
+                if (self.model.selectedFractal == .newton) {
+                    NewtonConfigView(model: model).frame(width: 150.0)
+                }
                 CanvasConfigView(model: model, steps_text: "\(model.steps)", wrap_text: "\(model.colour_count)", canvas: self.canvas).frame(width: 150.0)
             }
             
@@ -148,8 +151,60 @@ struct ConfigView: View {
     }
 }
 
+struct NewtonConfigView: View {
+    @ObservedObject var model: Model;
+    @State var colouring: NewtonColouring = .root;
+    
+    var body: some View {
+        VStack {
+            Picker("Colouring", selection: $colouring, content: {
+                ForEach(NewtonColouring.allCases) {
+                    Text($0.rawValue.capitalized)
+                }
+            }).onChange(of: self.colouring, perform: { newColouring in
+                self.model.newtonColouring = newColouring;
+                self.model.dirty = true;
+                
+            })
+            
+            
+            let r1_binding = Binding(
+                get: { self.model.r1 },
+                set: {
+                    self.model.r1 = $0;
+                    self.model.updateNewton();
+                }
+            );
+            let r2_binding = Binding(
+                get: { self.model.r2 },
+                set: {
+                    self.model.r2 = $0;
+                    self.model.updateNewton();
+                }
+            );
+            let r3_binding = Binding(
+                get: { self.model.r3 },
+                set: {
+                    self.model.r3 = $0;
+                    self.model.updateNewton();
+                }
+            );
+            let range = 5.0;
+            SliderPlane(length: 100, value: r1_binding, minVal: float2(-range, -range), maxVal: float2(range, range), label: "Root 1")
+            SliderPlane(length: 100, value: r2_binding, minVal: float2(-range, -range), maxVal: float2(range, range), label: "Root 2")
+            SliderPlane(length: 100, value: r3_binding, minVal: float2(-range, -range), maxVal: float2(range, range), label: "Root 3")
+            
+        }.foregroundColor(.white)
+    }
+}
+
 enum Fractal: String, CaseIterable, Identifiable, Equatable {
-     case mandelbrot, julia
+     case mandelbrot, julia, newton
+     var id: Self { self }
+ }
+
+enum NewtonColouring: String, CaseIterable, Identifiable, Equatable {
+     case root, iterations
      var id: Self { self }
  }
 
@@ -170,7 +225,7 @@ struct CanvasConfigView: View {
                     Text($0.rawValue.capitalized)
                 }
             }).onChange(of: self.selectedFractal, perform: { newFractal in
-                self.model.julia = newFractal == .julia;
+                self.model.selectedFractal = newFractal;
                 let temp = self.model.prevZ;
                 self.model.prevZ = self.model.z_initial;
                 self.model.z_initial = temp;
