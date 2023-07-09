@@ -21,7 +21,7 @@
                BlueprintIdentifier = "A341F0E02A4F578A00B9B4EA"
                BuildableName = "FractalAppTests.xctest"
                BlueprintName = "FractalAppTests"
-               ReferencedContainer = "container:Mandelbrot.xcodeproj">
+               ReferencedContainer = "container:FractalApp.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>

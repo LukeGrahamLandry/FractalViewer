@@ -1,13 +1,11 @@
 import SwiftUI
 import MetalKit
 
+// TODO: this should be different for different fractals 
 let MAX_ZOOM_LOG2: Float64 = 50;
 
-// https://developer.apple.com/forums/thread/119112
 struct MetalView: NSViewRepresentable {
     var model: Model;
-    // TODO: combine these all into a struct since they need to be passed down a bunch of layers. then that's one struct where any update causes the canvas view to be remade. 
-    // It seems that setting these fields in the init method is what causes updateNSView to get called.
     @ObservedObject var canvas: CanvasModel;
     
     
@@ -85,6 +83,24 @@ struct MetalView: NSViewRepresentable {
     }
 }
 
+
+// These are variables that must trigger updateNSView.
+class CanvasModel: ObservableObject {
+    // This is the value controlled by the slider so you can adjust performace.
+    @Published var resolutionScale: Float64 = 1.0;
+    @Published var realSize: CGSize = .zero;
+    
+    // This comes from the monitor settings.
+    // Can't just put @Environment on this field because reading it every frame while zooming is really slow.
+    @Published var displayScale: CGFloat = 1.0;
+    @Published var fps = 30;
+    
+    // Real unscaled area in pixels. This also tells you which part of the window is the view.
+    @Published var canvasArea: CGRect = .zero;
+    @Published var windowArea: CGRect = .zero;
+    @Published var showSidebars = true;
+}
+
 // The published fields cause the ui to update. The dirty field causes the frame to redraw.
 class Model: ObservableObject {
     @Published var zoom: Float64 = 300.0;
@@ -97,7 +113,7 @@ class Model: ObservableObject {
     var prevZ = float2(x: 0.0, y: 0.0);
     
     // TODO: this should be on the MetalView instead but it needs to not be recreated every update.
-    var gpu = MandelbrotRender();
+    var gpu = Gpu();
     
     var delta = float2(0.0, 0.0);
     
@@ -188,6 +204,10 @@ class Model: ObservableObject {
         return self.zoom > self.floatPrecisionCutoff;
     }
     
+    func minZoom() -> Float64 {
+        return self.selectedFractal == .newton ? 0.001 : 1.0;
+    }
+    
     func setDefaults(){
         self.zoom = 300.0;
         self.c_offset = float2(x: -2.85, y: -1.32);
@@ -197,9 +217,10 @@ class Model: ObservableObject {
         self.dirty = true;
     }
     
-    func updateNewton() {
+    func updateNewton() -> Polynomial {
         self.dirty = true;
         self.newtonInputs = NewtonShaderInputs.create(roots: [r1, r2, r3]);
+        return Polynomial(roots: [r1, r2, r3]);
     }
     
     func addEventListeners(_ canvas: CanvasModel) {
@@ -214,9 +235,9 @@ class Model: ObservableObject {
         // TODO: this needs to be framerate independant
         self.eventHandlers.append(NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
             let old_zoom_log2 = log2(self.zoom);
-            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.000005 * max(old_zoom_log2, 1.0);
-            let new_zoom_raw = pow(2, old_zoom_log2 + zoom_delta_log2)
-            let new_zoom = min(max(new_zoom_raw, 1.0), Float64(1 << Int(MAX_ZOOM_LOG2)));
+            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.000005 * max(old_zoom_log2, 3);
+            let new_zoom_raw = pow(2, old_zoom_log2 + zoom_delta_log2);
+            let new_zoom = min(max(new_zoom_raw, self.minZoom()), Float64(1 << Int(MAX_ZOOM_LOG2)));
             self.zoomCentered(windowX: $0.locationInWindow.x, windowY: $0.locationInWindow.y, newZoom: new_zoom, canvas);
             return $0
         });

@@ -21,7 +21,7 @@ class MandelbrotScreensaver: ScreenSaverView {
     }
 
     override func draw(_ rect: NSRect) {
-        
+    
     }
 
     override func animateOneFrame() {

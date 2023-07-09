@@ -18,25 +18,7 @@ struct FractalAppApp: App {
     }
 }
 
-// These are variables that must trigger updateNSView.
-class CanvasModel: ObservableObject {
-    // This is the value controlled by the slider so you can adjust performace.
-    @Published var resolutionScale: Float64 = 1.0;
-    @Published var realSize: CGSize = .zero;
-    
-    // This comes from the monitor settings.
-    // Can't just put @Environment on this field because reading it every frame while zooming is really slow.
-    @Published var displayScale: CGFloat = 1.0;
-    @Published var fps = 30;
-    
-    // Real unscaled area in pixels. This also tells you which part of the window is the view.
-    @Published var canvasArea: CGRect = .zero;
-    @Published var windowArea: CGRect = .zero;
-    @Published var showSidebars = true;
-}
-
 // TODO: animate colour offset
-
 struct ContentView: View {
     @StateObject var model = Model();
     // The view automatically reruns when this changes.
@@ -94,8 +76,6 @@ struct ContentView: View {
 }
 
 // For newton fractal, you should be able to drag the roots around.
-// Need to precalculate the roots anyway. Could colour based on steps to get within some cutoff range but
-// that's boring because close points probably aren't chaotic? 
 // TODO: should have a log view to show errors and an assert function that logs there.
 //       metal setup, making sure I find the right number of roots for polynomials, etc
 
@@ -131,7 +111,7 @@ struct ConfigView: View {
             Text("\(Int(model.zoom))x")
             Text("2^\(Int(log2(model.zoom)))x")
             Text("10^\(Int(log10(model.zoom)))x")
-            Slider(value: zs_binding, in: 1...MAX_ZOOM_LOG2).frame(width: 130.0)
+            Slider(value: zs_binding, in: (log2(self.model.minZoom()))...MAX_ZOOM_LOG2).frame(width: 130.0)
             
             let z_binding = Binding(
                 get: { self.model.z_initial },
@@ -153,46 +133,38 @@ struct ConfigView: View {
 
 struct NewtonConfigView: View {
     @ObservedObject var model: Model;
-    @State var colouring: NewtonColouring = .root;
+    @State var equation: Polynomial?;
     
     var body: some View {
         VStack {
-            Picker("Colouring", selection: $colouring, content: {
-                ForEach(NewtonColouring.allCases) {
-                    Text($0.rawValue.capitalized)
-                }
-            }).onChange(of: self.colouring, perform: { newColouring in
-                self.model.newtonColouring = newColouring;
-                self.model.dirty = true;
-                
-            })
-            
-            
             let r1_binding = Binding(
                 get: { self.model.r1 },
                 set: {
                     self.model.r1 = $0;
-                    self.model.updateNewton();
+                    self.equation = self.model.updateNewton();
                 }
             );
             let r2_binding = Binding(
                 get: { self.model.r2 },
                 set: {
                     self.model.r2 = $0;
-                    self.model.updateNewton();
+                    self.equation = self.model.updateNewton();
                 }
             );
             let r3_binding = Binding(
                 get: { self.model.r3 },
                 set: {
                     self.model.r3 = $0;
-                    self.model.updateNewton();
+                    self.equation = self.model.updateNewton();
                 }
             );
             let range = 5.0;
             SliderPlane(length: 100, value: r1_binding, minVal: float2(-range, -range), maxVal: float2(range, range), label: "Root 1")
             SliderPlane(length: 100, value: r2_binding, minVal: float2(-range, -range), maxVal: float2(range, range), label: "Root 2")
             SliderPlane(length: 100, value: r3_binding, minVal: float2(-range, -range), maxVal: float2(range, range), label: "Root 3")
+            
+            // TODO
+            // Text(self.equation)
             
         }.foregroundColor(.white)
     }
@@ -214,6 +186,7 @@ struct CanvasConfigView: View {
     @State var wrap_text: String;
     @ObservedObject var canvas: CanvasModel;
     @State var selectedFractal: Fractal = .mandelbrot;
+    @State var colouring: NewtonColouring = .root;
     
     // TODO: toggle between c_offset and z_initial
     // TODO: option to apply momentum (for if you dont have free spinning mouse)
@@ -230,7 +203,24 @@ struct CanvasConfigView: View {
                 self.model.prevZ = self.model.z_initial;
                 self.model.z_initial = temp;
                 self.model.dirty = true;
+                if newFractal == .newton {
+                    self.model.zoom = 1;
+                } else {
+                    
+                }
             })
+            
+            if self.model.selectedFractal == .newton {
+                Picker("Colouring", selection: $colouring, content: {
+                    ForEach(NewtonColouring.allCases) {
+                        Text($0.rawValue.capitalized)
+                    }
+                }).onChange(of: self.colouring, perform: { newColouring in
+                    self.model.newtonColouring = newColouring;
+                    self.model.dirty = true;
+                    
+                })
+            }
             
             // TODO: wrap these in thier own view? Field can take ParseableFormatStyle to parse numbers?
             // TODO: show explanation of what the numbers do.
@@ -292,29 +282,31 @@ struct CanvasConfigView: View {
               Text("FPS")
             }
             
-            
-            if self.model.usingDoubles() {
+            if self.model.selectedFractal == .newton {
                 Text("Precision: float-float")
             } else {
-                Text("Precision: float")
-            }
-            
-            // TODO: how to get rid of gap between label and slider
-            
-            Text("Switch Precision At:")
-            let precision_binding = Binding(
-                get: { log2(self.model.floatPrecisionCutoff) },
-                set: {
-                    self.model.floatPrecisionCutoff = pow(2, $0);
-                    self.model.dirty = true;
+                if self.model.usingDoubles() {
+                    Text("Precision: float-float")
+                } else {
+                    Text("Precision: float")
                 }
-            );
-            Slider(value: precision_binding, in: 1...MAX_ZOOM_LOG2).frame(width: 130.0)
+                
+                // TODO: how to get rid of gap between label and slider
+                
+                Text("Switch Precision At:")
+                let precision_binding = Binding(
+                    get: { log2(self.model.floatPrecisionCutoff) },
+                    set: {
+                        self.model.floatPrecisionCutoff = pow(2, $0);
+                        self.model.dirty = true;
+                    }
+                );
+                Slider(value: precision_binding, in: 1...MAX_ZOOM_LOG2).frame(width: 130.0)
+                
+            }
             
                 
             // TODO: show frame time somehow so you can see how hard it's working. graph?
-            
-            
             
             Group {
                 Text("Canvas Updates: \(self.model.canvasUpdateCount)")
@@ -417,8 +409,6 @@ struct SliderPlaneInner: View {
                     .position(x: x, y: y)
             }
         }
-        
-        // TODO: this isnt sensitive enough
         .gesture(DragGesture(minimumDistance: 0.1)
                     .onChanged({ pos in
                         let x_scale = (rect.minX - pos.location.x) / geo.size.width;

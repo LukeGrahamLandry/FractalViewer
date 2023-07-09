@@ -1,7 +1,7 @@
 import Metal
 import MetalKit
 
-struct MandelbrotRender {
+struct Gpu {
     var device: MTLDevice;
     var mtl_layer: CAMetalLayer;
     var queue: MTLCommandQueue;
@@ -131,11 +131,10 @@ struct NewtonShaderInputs {
     }
 };
 
-// https://andrewthall.org/papers/df64_qf128.pdf
-
 struct df64_t {
     var v: SIMD2<Float32>;
     init(_ a: Double) {
+        // https://andrewthall.org/papers/df64_qf128.pdf
         let SPLITTER = Double((1 << 29) + 1);
         let t = a * SPLITTER;
         let x = t - (t - a);

@@ -1,14 +1,9 @@
 # Learning SwiftUI + Metal
 
-
-# Tue June 27
-
 ## 2d Slider
 
 - https://stackoverflow.com/questions/67984621/2d-slider-trackpad-in-swiftui
 - Circle / Rectangle
-
-# Sat June 24
 
 ## @Environment displaySize 
 
@@ -16,8 +11,6 @@
 
 Magic annotation on a field that lets it read from the environment value. 
 Putting it on a view struct makes it automaticlly update when the value changes like @State. 
-
-# Fri June 23
 
 ## Kill the app when window closes
 
@@ -82,8 +75,6 @@ Extending UIViewRepresentable gives you a function to return a MTKView and attat
 a struct extending MTKViewDelegate which gives you a callback to draw each frame. 
 
 There's also a resize callback that needs to set the layer's drawableSize, otherwise it just squishes the image to fit. 
-
-# Thu June 22
 
 ## Run fragment shader runs for every pixel
 

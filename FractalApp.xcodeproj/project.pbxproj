@@ -7,57 +7,37 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A341F0DA2A4F506B00B9B4EA /* Newton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0D92A4F506B00B9B4EA /* Newton.swift */; };
-		A341F0E42A4F578A00B9B4EA /* FractalAppTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0E32A4F578A00B9B4EA /* FractalAppTests.swift */; };
-		A341F0EA2A4F57D000B9B4EA /* Newton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0D92A4F506B00B9B4EA /* Newton.swift */; };
+		A341F0DA2A4F506B00B9B4EA /* Polynomial.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0D92A4F506B00B9B4EA /* Polynomial.swift */; };
+		A367495B2A514D660032EEF4 /* Polynomial.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0D92A4F506B00B9B4EA /* Polynomial.swift */; };
 		A3F40F5C2A4545B4007D443F /* MandelbrotScreensaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */; };
-		A3F40F982A45668F007D443F /* MandelbrotShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */; };
-		A3F40FA52A45B4D9007D443F /* FractalAppApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FA42A45B4D9007D443F /* FractalAppApp.swift */; };
+		A3F40F982A45668F007D443F /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* Shaders.metal */; };
+		A3F40FA52A45B4D9007D443F /* FractalAppUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FA42A45B4D9007D443F /* FractalAppUI.swift */; };
 		A3F40FA72A45B4D9007D443F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FA62A45B4D9007D443F /* ContentView.swift */; };
 		A3F40FA92A45B4DB007D443F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3F40FA82A45B4DB007D443F /* Assets.xcassets */; };
 		A3F40FAC2A45B4DB007D443F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3F40FAB2A45B4DB007D443F /* Preview Assets.xcassets */; };
-		A3F40FB22A45B607007D443F /* MandelbrotRender.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FB12A45B607007D443F /* MandelbrotRender.swift */; };
-		A3F40FB32A45B65C007D443F /* MandelbrotRender.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FB12A45B607007D443F /* MandelbrotRender.swift */; };
-		A3F40FB42A45B660007D443F /* MandelbrotShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */; };
+		A3F40FB22A45B607007D443F /* Gpu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FB12A45B607007D443F /* Gpu.swift */; };
+		A3F40FB32A45B65C007D443F /* Gpu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FB12A45B607007D443F /* Gpu.swift */; };
+		A3F40FB42A45B660007D443F /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* Shaders.metal */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		A341F0E52A4F578A00B9B4EA /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A3F40F462A454566007D443F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = A3F40FA12A45B4D9007D443F;
-			remoteInfo = FractalApp;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
-		A341F0D92A4F506B00B9B4EA /* Newton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Newton.swift; sourceTree = "<group>"; };
-		A341F0E12A4F578A00B9B4EA /* FractalAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FractalAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A341F0E32A4F578A00B9B4EA /* FractalAppTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FractalAppTests.swift; sourceTree = "<group>"; };
+		A341F0D92A4F506B00B9B4EA /* Polynomial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Polynomial.swift; sourceTree = "<group>"; };
 		A398A7922A483F400043F4ED /* swiftui.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = swiftui.md; sourceTree = "<group>"; };
 		A398A7932A48652E0043F4ED /* float_float.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = float_float.h; sourceTree = "<group>"; };
 		A3F40F4F2A454566007D443F /* Mandelbrot.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Mandelbrot.saver; sourceTree = BUILT_PRODUCTS_DIR; };
 		A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotScreensaver.swift; sourceTree = "<group>"; };
-		A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = MandelbrotShaders.metal; sourceTree = "<group>"; };
+		A3F40F922A454C5D007D443F /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		A3F40F9B2A458545007D443F /* fractals.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = fractals.md; sourceTree = "<group>"; };
 		A3F40FA22A45B4D9007D443F /* FractalApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FractalApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3F40FA42A45B4D9007D443F /* FractalAppApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FractalAppApp.swift; sourceTree = "<group>"; };
+		A3F40FA42A45B4D9007D443F /* FractalAppUI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FractalAppUI.swift; sourceTree = "<group>"; };
 		A3F40FA62A45B4D9007D443F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A3F40FA82A45B4DB007D443F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A3F40FAB2A45B4DB007D443F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		A3F40FAD2A45B4DB007D443F /* FractalApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FractalApp.entitlements; sourceTree = "<group>"; };
-		A3F40FB12A45B607007D443F /* MandelbrotRender.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotRender.swift; sourceTree = "<group>"; };
+		A3F40FB12A45B607007D443F /* Gpu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Gpu.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A341F0DE2A4F578A00B9B4EA /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A3F40F4C2A454566007D443F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -75,22 +55,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A341F0E22A4F578A00B9B4EA /* FractalAppTests */ = {
-			isa = PBXGroup;
-			children = (
-				A341F0E32A4F578A00B9B4EA /* FractalAppTests.swift */,
-			);
-			path = FractalAppTests;
-			sourceTree = "<group>";
-		};
 		A3F40F452A454566007D443F = {
 			isa = PBXGroup;
 			children = (
 				A398A7922A483F400043F4ED /* swiftui.md */,
 				A3F40F9B2A458545007D443F /* fractals.md */,
-				A3F40F512A454566007D443F /* Mandelbrot */,
 				A3F40FA32A45B4D9007D443F /* FractalApp */,
-				A341F0E22A4F578A00B9B4EA /* FractalAppTests */,
 				A3F40F502A454566007D443F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -100,31 +70,23 @@
 			children = (
 				A3F40F4F2A454566007D443F /* Mandelbrot.saver */,
 				A3F40FA22A45B4D9007D443F /* FractalApp.app */,
-				A341F0E12A4F578A00B9B4EA /* FractalAppTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		A3F40F512A454566007D443F /* Mandelbrot */ = {
-			isa = PBXGroup;
-			children = (
-				A3F40F922A454C5D007D443F /* MandelbrotShaders.metal */,
-				A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */,
-				A3F40FB12A45B607007D443F /* MandelbrotRender.swift */,
-				A398A7932A48652E0043F4ED /* float_float.h */,
-			);
-			path = Mandelbrot;
 			sourceTree = "<group>";
 		};
 		A3F40FA32A45B4D9007D443F /* FractalApp */ = {
 			isa = PBXGroup;
 			children = (
-				A3F40FA42A45B4D9007D443F /* FractalAppApp.swift */,
+				A3F40F922A454C5D007D443F /* Shaders.metal */,
+				A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */,
+				A398A7932A48652E0043F4ED /* float_float.h */,
+				A3F40FB12A45B607007D443F /* Gpu.swift */,
+				A3F40FA42A45B4D9007D443F /* FractalAppUI.swift */,
 				A3F40FA62A45B4D9007D443F /* ContentView.swift */,
 				A3F40FA82A45B4DB007D443F /* Assets.xcassets */,
 				A3F40FAD2A45B4DB007D443F /* FractalApp.entitlements */,
 				A3F40FAA2A45B4DB007D443F /* Preview Content */,
-				A341F0D92A4F506B00B9B4EA /* Newton.swift */,
+				A341F0D92A4F506B00B9B4EA /* Polynomial.swift */,
 			);
 			path = FractalApp;
 			sourceTree = "<group>";
@@ -150,24 +112,6 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		A341F0E02A4F578A00B9B4EA /* FractalAppTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A341F0E72A4F578A00B9B4EA /* Build configuration list for PBXNativeTarget "FractalAppTests" */;
-			buildPhases = (
-				A341F0DD2A4F578A00B9B4EA /* Sources */,
-				A341F0DE2A4F578A00B9B4EA /* Frameworks */,
-				A341F0DF2A4F578A00B9B4EA /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A341F0E62A4F578A00B9B4EA /* PBXTargetDependency */,
-			);
-			name = FractalAppTests;
-			productName = FractalAppTests;
-			productReference = A341F0E12A4F578A00B9B4EA /* FractalAppTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		A3F40F4E2A454566007D443F /* Mandelbrot */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A3F40F582A454566007D443F /* Build configuration list for PBXNativeTarget "Mandelbrot" */;
@@ -213,10 +157,6 @@
 				LastSwiftUpdateCheck = 1430;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					A341F0E02A4F578A00B9B4EA = {
-						CreatedOnToolsVersion = 14.3;
-						TestTargetID = A3F40FA12A45B4D9007D443F;
-					};
 					A3F40F4E2A454566007D443F = {
 						CreatedOnToolsVersion = 14.3;
 						LastSwiftMigration = 1430;
@@ -226,7 +166,7 @@
 					};
 				};
 			};
-			buildConfigurationList = A3F40F492A454566007D443F /* Build configuration list for PBXProject "Mandelbrot" */;
+			buildConfigurationList = A3F40F492A454566007D443F /* Build configuration list for PBXProject "FractalApp" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -241,19 +181,11 @@
 			targets = (
 				A3F40F4E2A454566007D443F /* Mandelbrot */,
 				A3F40FA12A45B4D9007D443F /* FractalApp */,
-				A341F0E02A4F578A00B9B4EA /* FractalAppTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A341F0DF2A4F578A00B9B4EA /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A3F40F4D2A454566007D443F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -273,21 +205,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A341F0DD2A4F578A00B9B4EA /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A341F0EA2A4F57D000B9B4EA /* Newton.swift in Sources */,
-				A341F0E42A4F578A00B9B4EA /* FractalAppTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A3F40F4B2A454566007D443F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A3F40F982A45668F007D443F /* MandelbrotShaders.metal in Sources */,
-				A3F40FB22A45B607007D443F /* MandelbrotRender.swift in Sources */,
+				A3F40F982A45668F007D443F /* Shaders.metal in Sources */,
+				A3F40FB22A45B607007D443F /* Gpu.swift in Sources */,
+				A367495B2A514D660032EEF4 /* Polynomial.swift in Sources */,
 				A3F40F5C2A4545B4007D443F /* MandelbrotScreensaver.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -297,66 +221,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				A3F40FA72A45B4D9007D443F /* ContentView.swift in Sources */,
-				A341F0DA2A4F506B00B9B4EA /* Newton.swift in Sources */,
-				A3F40FB32A45B65C007D443F /* MandelbrotRender.swift in Sources */,
-				A3F40FB42A45B660007D443F /* MandelbrotShaders.metal in Sources */,
-				A3F40FA52A45B4D9007D443F /* FractalAppApp.swift in Sources */,
+				A341F0DA2A4F506B00B9B4EA /* Polynomial.swift in Sources */,
+				A3F40FB32A45B65C007D443F /* Gpu.swift in Sources */,
+				A3F40FB42A45B660007D443F /* Shaders.metal in Sources */,
+				A3F40FA52A45B4D9007D443F /* FractalAppUI.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXTargetDependency section */
-		A341F0E62A4F578A00B9B4EA /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = A3F40FA12A45B4D9007D443F /* FractalApp */;
-			targetProxy = A341F0E52A4F578A00B9B4EA /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
 /* Begin XCBuildConfiguration section */
-		A341F0E82A4F578A00B9B4EA /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JB6RG24F8N;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
-				MARKETING_VERSION = 1.0;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = ca.lukegrahamlandry.FractalAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FractalApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FractalApp";
-			};
-			name = Debug;
-		};
-		A341F0E92A4F578A00B9B4EA /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JB6RG24F8N;
-				GENERATE_INFOPLIST_FILE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
-				MARKETING_VERSION = 1.0;
-				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = ca.lukegrahamlandry.FractalAppTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FractalApp.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/FractalApp";
-			};
-			name = Release;
-		};
 		A3F40F562A454566007D443F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -570,16 +444,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A341F0E72A4F578A00B9B4EA /* Build configuration list for PBXNativeTarget "FractalAppTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A341F0E82A4F578A00B9B4EA /* Debug */,
-				A341F0E92A4F578A00B9B4EA /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A3F40F492A454566007D443F /* Build configuration list for PBXProject "Mandelbrot" */ = {
+		A3F40F492A454566007D443F /* Build configuration list for PBXProject "FractalApp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A3F40F562A454566007D443F /* Debug */,

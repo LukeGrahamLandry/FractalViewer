@@ -77,7 +77,6 @@ func *(lhs: Polynomial, rhs: Polynomial) -> Polynomial {
     var result = Polynomial(degree: lhs.coefficients.count + rhs.coefficients.count);
     for (lC, lVal) in lhs.coefficients.enumerated() {
         for (rC, rVal) in rhs.coefficients.enumerated() {
-            // TODO: complex multiply!
             result.coefficients[rC + lC] += complex_mul(rVal, lVal);
         }
     }
