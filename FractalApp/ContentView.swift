@@ -235,7 +235,7 @@ class Model: ObservableObject {
         // TODO: this needs to be framerate independant
         self.eventHandlers.append(NSEvent.addLocalMonitorForEvents(matching: [.scrollWheel]) {
             let old_zoom_log2 = log2(self.zoom);
-            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.000005 * max(old_zoom_log2, 3);
+            let zoom_delta_log2 = Float64($0.scrollingDeltaY) * 0.00005 * max(old_zoom_log2, 3);
             let new_zoom_raw = pow(2, old_zoom_log2 + zoom_delta_log2);
             let new_zoom = min(max(new_zoom_raw, self.minZoom()), Float64(1 << Int(MAX_ZOOM_LOG2)));
             self.zoomCentered(windowX: $0.locationInWindow.x, windowY: $0.locationInWindow.y, newZoom: new_zoom, canvas);

@@ -86,25 +86,9 @@ bool df64_eq(float2 a, float2 b) {
     return all(a == b);
 }
 
-//float2 df64_log(float2 a) {
-//    float2 xi = float2 (0.0, 0.0);
-//    if (!df64_eq(a, 1.0f)) {
-//        // TODO: make sure this just never happens and take it out
-//        if (a.x <= 0.0) {
-//            xi = float2(NAN, NAN);
-//        } else {
-//            xi.x = log(a.x);
-//            xi = df64_add(df64_add(xi, df64_mult ( df64_exp(-xi ) , a )) , -1.0);
-//        }
-//    }
-//    return xi;
-//}
-
 // /////////////////////////////////////////////////////////////////////////////
 // END PAPER
 // /////////////////////////////////////////////////////////////////////////////
-
-// TODO: look at how the paper does quad floats. can I just use the above functions with (n)float to get (n+1)float? is that just slow? what does the renormalization do? maybe it keeps all the mantisa chunks consecutive?
 
 typedef struct df64 {
     float2 v;

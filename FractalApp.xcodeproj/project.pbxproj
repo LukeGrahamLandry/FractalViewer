@@ -8,14 +8,10 @@
 
 /* Begin PBXBuildFile section */
 		A341F0DA2A4F506B00B9B4EA /* Polynomial.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0D92A4F506B00B9B4EA /* Polynomial.swift */; };
-		A367495B2A514D660032EEF4 /* Polynomial.swift in Sources */ = {isa = PBXBuildFile; fileRef = A341F0D92A4F506B00B9B4EA /* Polynomial.swift */; };
-		A3F40F5C2A4545B4007D443F /* MandelbrotScreensaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */; };
-		A3F40F982A45668F007D443F /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* Shaders.metal */; };
 		A3F40FA52A45B4D9007D443F /* FractalAppUI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FA42A45B4D9007D443F /* FractalAppUI.swift */; };
 		A3F40FA72A45B4D9007D443F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FA62A45B4D9007D443F /* ContentView.swift */; };
 		A3F40FA92A45B4DB007D443F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3F40FA82A45B4DB007D443F /* Assets.xcassets */; };
 		A3F40FAC2A45B4DB007D443F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A3F40FAB2A45B4DB007D443F /* Preview Assets.xcassets */; };
-		A3F40FB22A45B607007D443F /* Gpu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FB12A45B607007D443F /* Gpu.swift */; };
 		A3F40FB32A45B65C007D443F /* Gpu.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3F40FB12A45B607007D443F /* Gpu.swift */; };
 		A3F40FB42A45B660007D443F /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = A3F40F922A454C5D007D443F /* Shaders.metal */; };
 /* End PBXBuildFile section */
@@ -24,8 +20,6 @@
 		A341F0D92A4F506B00B9B4EA /* Polynomial.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Polynomial.swift; sourceTree = "<group>"; };
 		A398A7922A483F400043F4ED /* swiftui.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = swiftui.md; sourceTree = "<group>"; };
 		A398A7932A48652E0043F4ED /* float_float.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = float_float.h; sourceTree = "<group>"; };
-		A3F40F4F2A454566007D443F /* Mandelbrot.saver */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Mandelbrot.saver; sourceTree = BUILT_PRODUCTS_DIR; };
-		A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MandelbrotScreensaver.swift; sourceTree = "<group>"; };
 		A3F40F922A454C5D007D443F /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 		A3F40F9B2A458545007D443F /* fractals.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = fractals.md; sourceTree = "<group>"; };
 		A3F40FA22A45B4D9007D443F /* FractalApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = FractalApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -38,13 +32,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A3F40F4C2A454566007D443F /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A3F40F9F2A45B4D9007D443F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -68,7 +55,6 @@
 		A3F40F502A454566007D443F /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A3F40F4F2A454566007D443F /* Mandelbrot.saver */,
 				A3F40FA22A45B4D9007D443F /* FractalApp.app */,
 			);
 			name = Products;
@@ -78,7 +64,6 @@
 			isa = PBXGroup;
 			children = (
 				A3F40F922A454C5D007D443F /* Shaders.metal */,
-				A3F40F5B2A4545B4007D443F /* MandelbrotScreensaver.swift */,
 				A398A7932A48652E0043F4ED /* float_float.h */,
 				A3F40FB12A45B607007D443F /* Gpu.swift */,
 				A3F40FA42A45B4D9007D443F /* FractalAppUI.swift */,
@@ -101,35 +86,7 @@
 		};
 /* End PBXGroup section */
 
-/* Begin PBXHeadersBuildPhase section */
-		A3F40F4A2A454566007D443F /* Headers */ = {
-			isa = PBXHeadersBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXHeadersBuildPhase section */
-
 /* Begin PBXNativeTarget section */
-		A3F40F4E2A454566007D443F /* Mandelbrot */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A3F40F582A454566007D443F /* Build configuration list for PBXNativeTarget "Mandelbrot" */;
-			buildPhases = (
-				A3F40F4A2A454566007D443F /* Headers */,
-				A3F40F4B2A454566007D443F /* Sources */,
-				A3F40F4C2A454566007D443F /* Frameworks */,
-				A3F40F4D2A454566007D443F /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = Mandelbrot;
-			productName = Mandelbrot;
-			productReference = A3F40F4F2A454566007D443F /* Mandelbrot.saver */;
-			productType = "com.apple.product-type.bundle";
-		};
 		A3F40FA12A45B4D9007D443F /* FractalApp */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A3F40FAE2A45B4DB007D443F /* Build configuration list for PBXNativeTarget "FractalApp" */;
@@ -157,10 +114,6 @@
 				LastSwiftUpdateCheck = 1430;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					A3F40F4E2A454566007D443F = {
-						CreatedOnToolsVersion = 14.3;
-						LastSwiftMigration = 1430;
-					};
 					A3F40FA12A45B4D9007D443F = {
 						CreatedOnToolsVersion = 14.3;
 					};
@@ -179,20 +132,12 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A3F40F4E2A454566007D443F /* Mandelbrot */,
 				A3F40FA12A45B4D9007D443F /* FractalApp */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A3F40F4D2A454566007D443F /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A3F40FA02A45B4D9007D443F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -205,17 +150,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		A3F40F4B2A454566007D443F /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A3F40F982A45668F007D443F /* Shaders.metal in Sources */,
-				A3F40FB22A45B607007D443F /* Gpu.swift in Sources */,
-				A367495B2A514D660032EEF4 /* Polynomial.swift in Sources */,
-				A3F40F5C2A4545B4007D443F /* MandelbrotScreensaver.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		A3F40F9E2A45B4D9007D443F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -340,49 +274,6 @@
 			};
 			name = Release;
 		};
-		A3F40F592A454566007D443F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JB6RG24F8N;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSPrincipalClass = MandelbrotView;
-				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ca.lukegrahamlandry.Mandelbrot;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-				WRAPPER_EXTENSION = saver;
-			};
-			name = Debug;
-		};
-		A3F40F5A2A454566007D443F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_STYLE = Automatic;
-				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = JB6RG24F8N;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_NSPrincipalClass = MandelbrotView;
-				INSTALL_PATH = "$(HOME)/Library/Screen Savers";
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ca.lukegrahamlandry.Mandelbrot;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				WRAPPER_EXTENSION = saver;
-			};
-			name = Release;
-		};
 		A3F40FAF2A45B4DB007D443F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -449,15 +340,6 @@
 			buildConfigurations = (
 				A3F40F562A454566007D443F /* Debug */,
 				A3F40F572A454566007D443F /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		A3F40F582A454566007D443F /* Build configuration list for PBXNativeTarget "Mandelbrot" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A3F40F592A454566007D443F /* Debug */,
-				A3F40F5A2A454566007D443F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
